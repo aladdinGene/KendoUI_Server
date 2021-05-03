@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/efb74eb6-736a-45ce-a80e-1067e9cb70f5/resourceGroups/appsvc_linux_centralus_basic/providers/Microsoft.Web/sites/KendoUI",
+    "appService.deploySubpath": "."
+}
