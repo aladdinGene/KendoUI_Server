@@ -1,0 +1,194 @@
+{"value":[
+    {
+        "id": "2901ad22-6ec8-4811-cf24-08d8b7e65ae9",
+        "name": "EPI Bulletin for linked events",
+        "grantType": 3,
+        "permissionDescription": "",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 8,
+                    "itemName": "DocumentType"
+                }
+            ],
+            "DocumentType": [
+                {
+                    "id": 47,
+                    "itemName": "Epidemiological Bulletin"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 44,
+                    "itemName": "LinkedEvent"
+                }
+            ],
+            "LinkedEvent": [
+                {
+                    "id": "Document Occurrence"
+                }
+            ]
+        }
+    },
+    {
+        "id": "45d5f7fe-cf33-4ad1-5d64-08d8b3e8be64",
+        "name": "Lab test for linked emergencies",
+        "grantType": 3,
+        "permissionDescription": "",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 8,
+                    "itemName": "DocumentType"
+                }
+            ],
+            "DocumentType": [
+                {
+                    "id": 50,
+                    "itemName": "Laboratory tests"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 43,
+                    "itemName": "LinkedEmergency"
+                }
+            ],
+            "LinkedEmergency": [
+                {
+                    "id": "Document Occurrence"
+                }
+            ]
+        }
+    },
+    {
+        "id": "46e97a8d-d8eb-494a-5d61-08d8b3e8be64",
+        "name": "CV for available events",
+        "grantType": 3,
+        "permissionDescription": "",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 8,
+                    "itemName": "DocumentType"
+                }
+            ],
+            "DocumentType": [
+                {
+                    "id": 59,
+                    "itemName": "Curriculum Vitae (CV)"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 40,
+                    "itemName": "AvailableEvents"
+                }
+            ],
+            "AvailableEvents": [
+                {
+                    "id": "Document Occurrence"
+                }
+            ]
+        }
+    },
+    {
+        "id": "c70d7ed1-cc0d-407e-452d-08d8a682cf37",
+        "name": "DONs for available emergencies",
+        "grantType": 3,
+        "permissionDescription": "A",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 8,
+                    "itemName": "DocumentType"
+                }
+            ],
+            "DocumentType": [
+                {
+                    "id": 48,
+                    "itemName": "Disease Outbreak News (DON)"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 39,
+                    "itemName": "AvailableEmergency"
+                }
+            ],
+            "AvailableEmergency": [
+                {
+                    "id": "Document Occurrence"
+                }
+            ]
+        }
+    },
+    {
+        "id": "3ef2f55a-b436-4763-2d8c-08d89da12039",
+        "name": "PROTON - DONs",
+        "grantType": 2,
+        "permissionDescription": "",
+        "status": false,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 8,
+                    "itemName": "DocumentType"
+                }
+            ],
+            "DocumentType": [
+                {
+                    "id": 48,
+                    "itemName": "Disease Outbreak News (DON)"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 25,
+                    "itemName": "UserOrgPath"
+                }
+            ],
+            "UserOrgPath": [
+                {
+                    "id": "FATIMA/PROTON"
+                }
+            ]
+        }
+    },
+    {
+        "id": "0b75aec2-8a8a-47ec-2d8b-08d89da12039",
+        "name": "EMRS DEV - HR documents",
+        "grantType": 3,
+        "permissionDescription": "",
+        "status": false,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 7,
+                    "itemName": "DocumentRole"
+                }
+            ],
+            "DocumentRole": [
+                {
+                    "id": 67,
+                    "itemName": "HR"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 26,
+                    "itemName": "UserPermissionGroup"
+                }
+            ],
+            "UserPermissionGroup": [
+                {
+                    "id": "EMRS Dev Team"
+                }
+            ]
+        }
+    }
+]}

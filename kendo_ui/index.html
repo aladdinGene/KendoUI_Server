@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kendo UI Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="assets/styles/examples-offline.css" rel="stylesheet">
+    <link href="kendo-plugin/styles/kendo.common.min.css" rel="stylesheet">
+    <link href="kendo-plugin/styles/kendo.rtl.min.css" rel="stylesheet">
+    <link href="kendo-plugin/styles/kendo.default.min.css" rel="stylesheet">
+    <link href="kendo-plugin/styles/kendo.default.mobile.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="assets/styles/custom.css">
+    <script src="https://alcdn.msauth.net/browser/2.13.1/js/msal-browser.js" integrity="sha384-7hwr87O1w6buPsX92CwuRaz/wQzachgOEq+iLHv0ESavynv6rbYwKImSl7wUW3wV" crossorigin="anonymous"></script>
+    <script src="kendo-plugin/js/jquery.min.js"></script>
+    <script src="kendo-plugin/js/jszip.min.js"></script>
+    <script src="kendo-plugin/js/kendo.all.min.js"></script>
+    <script src="../../Kendo_Example/examples/content/shared/js/products.js"></script>
+    
+    
+    
+
+</head>
+<body>
+    <div id="main-wrapper">
+        <div id="tabstrip">
+            <ul>
+                <li class="k-state-active">
+                    REFERENCE DATA
+                </li>
+                <li>
+                    SYSTEM PERMISSION
+                </li>
+                <li>
+                    DOCUMENT PERMISSION
+                </li>
+                <li>
+                    USER PERMISSION SIMULATION
+                </li>
+            </ul>
+
+            <div>
+                <div class="blue-bar">Reference Database</div>
+                <div id="treelist"></div>
+            </div>
+            <div>
+                <div class="blue-bar">SYSTEM PERMISSION</div>
+                <div id="system-permission"></div>
+            </div>
+            <div>
+                <div class="blue-bar">DOCUMENT PERMISSION</div>
+                <div id="document-permission"></div>
+            </div>
+            <div>
+                <div class="blue-bar">USER PERMISSION SIMULATION</div>
+                <div id="user-simulation">
+                    <div class="d-flex mb-20">
+                        <div class="d-flex">
+                            <input type="radio" name="select-user" id="radio-spec-user">
+                            <label>For specific user</label>
+                        </div>
+                        <div class="ml-30">
+                            <input id="spec-user-select" />
+                        </div>
+                    </div>
+                    <div class="mb-20">
+                        <div>
+                            <input type="radio" name="select-user" id="radio-simul-user">
+                            <label>For simulated user</label>
+                        </div>
+                        <div id="simul-filter-wrap">
+                        </div>
+                    </div>
+                    <hr>
+                    <div id="applied-permission"></div>
+                </div>
+            </div>
+
+            <!--------------- Reference Data Template Start --------------->
+
+            <script id="id-template" type="text/x-kendo-template">
+                #if (data.Id > -1) {#
+                    #= data.Id #
+                #}#
+            </script>
+
+            <script id="ems-sync-template" type="text/x-kendo-template">
+                #if (data.Id > -1) {#
+                    #if (data.SyncToEms) {#
+                        <div style="text-align: center; color: green;">
+                            <span class="k-icon k-i-check-circle"></span>
+                        </div>
+                    #} else {#
+                        <div style="text-align: center; color: gray;">
+                            <span class="k-icon k-i-minus-circle"></span>
+                        </div>
+                    #}#
+                #}#
+            </script>
+
+            <script id="vshoc-sync-template" type="text/x-kendo-template">
+                #if (data.Id > -1) {#
+                    #if (data.SyncTovShoc) {#
+                        <div style="text-align: center; color: green;">
+                            <span class="k-icon k-i-check-circle"></span>
+                        </div>
+                    #} else {#
+                        <div style="text-align: center; color: gray;">
+                            <span class="k-icon k-i-minus-circle"></span>
+                        </div>
+                    #}#
+                #}#
+            </script>
+
+            <script type="text/x-kendo-template" id="popup-template">
+                <div class="createTemplate">
+                    <div class="k-edit-label">
+                        <label for="masterType">Master Type</label>
+                    </div>
+                    <div data-container-for="masterType" class="k-edit-field">
+                        <input id="masterType" 
+                            name="masterType" 
+                            title="masterType" 
+                            data-bind="value:masterType"
+                            data-value-field="value"
+                            data-text-field="text"
+                            data-source="dataSourceMasterType"
+                            data-role="dropdownlist" 
+                            data-option-label="--Select Master Type--"
+                            data-change="masterTypeChange"
+                        />
+                    </div>
+                    #if(!data.isNew() && data.AssignmentFunctionId != null && data.AssignmentFunctionId > -1) {#
+                        <div class="k-edit-label">
+                            <label for="AssignmentFunctionId">Parent Type</label>
+                        </div>
+                        <div data-container-for="AssignmentFunctionId" class="k-edit-field">
+                            <input id="AssignmentFunctionId" 
+                                name="AssignmentFunctionId" 
+                                title="AssignmentFunctionId" 
+                                data-bind="value:AssignmentFunctionId"
+                                data-value-field="value"
+                                data-text-field="text"
+                                data-source="#if(data.masterType == 'Assignment Function') {# AssignmentFunctionData #} else {# HazardData #}#"
+                                data-role="dropdownlist" 
+                                data-option-label="--Select Parent Type--"
+                            />
+                        </div>
+                    #}#
+
+                    <div class="popNone">
+
+                        <div class="k-edit-label">
+                            <label for="Code">Code</label>
+                        </div>
+                        <div data-container-for="Code" class="k-edit-field">
+                            <input type="text" id="Code" name="Code" title="Code" data-bind="value:Code" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="Name">Name</label>
+                        </div>
+                        <div data-container-for="Name" class="k-edit-field">
+                            <input type="text" id="Name" name="Name" title="Name" data-bind="value:Name" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="Description">Description</label>
+                        </div>
+                        <div data-container-for="Description" class="k-edit-field">
+                            <input type="text" id="Description" name="Description" title="Description" data-bind="value:Description" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="IncidentSpecific">Incident Specific</label>
+                        </div>
+                        <div data-container-for="IncidentSpecific" class="k-edit-field">
+                            <input type="text" id="IncidentSpecific" name="IncidentSpecific" title="IncidentSpecific" data-bind="value:IncidentSpecific" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="EmsId">EmsId</label>
+                        </div>
+                        <div data-container-for="Ems Id" class="k-edit-field">
+                            <input type="text" id="EmsId" name="EmsId" title="EmsId" data-bind="value:EmsId" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="EmsCode">EMS Code</label>
+                        </div>
+                        <div data-container-for="EmsCode" class="k-edit-field">
+                            <input type="text" id="EmsCode" name="EmsCode" title="EmsCode" data-bind="value:EmsCode" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="EmsName">EMS Name</label>
+                        </div>
+                        <div data-container-for="EmsName" class="k-edit-field">
+                            <input type="text" id="EmsName" name="EmsName" title="EmsName" data-bind="value:EmsName" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="SyncToEms">EMS sync</label>
+                        </div>
+                        <div data-container-for="SyncToEms" class="k-edit-field">
+                            <input type="checkbox" id="SyncToEms" name="SyncToEms" title="SyncToEms" data-bind="value:SyncToEms" data-messages="{ checked: 'YES', unchecked: 'NO' }" data-role="switch" />
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="VshocId">Vshoc Id</label>
+                        </div>
+                        <div data-container-for="VshocId" class="k-edit-field">
+                            <input type="text" id="VshocId" name="VshocId" title="VshocId" data-bind="value:VshocId" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="vShocCode">VSHOC Code</label>
+                        </div>
+                        <div data-container-for="vShocCode" class="k-edit-field">
+                            <input type="text" id="vShocCode" name="vShocCode" title="vShocCode" data-bind="value:vShocCode" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="vShocName">VSHOC Name</label>
+                        </div>
+                        <div data-container-for="vShocName" class="k-edit-field">
+                            <input type="text" id="vShocName" name="vShocName" title="vShocName" data-bind="value:vShocName" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="SyncTovShoc">vShoc sync</label>
+                        </div>
+                        <div data-container-for="SyncTovShoc" class="k-edit-field">
+                            <input type="checkbox" id="SyncTovShoc" name="SyncTovShoc" title="SyncTovShoc" data-bind="value:SyncTovShoc" data-messages="{ checked: 'YES', unchecked: 'NO' }" data-role="switch" />
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="CreatedBy">Created By</label>
+                        </div>
+                        <div data-container-for="CreatedBy" class="k-edit-field">
+                            <input type="text" id="CreatedBy" name="CreatedBy" title="CreatedBy" data-bind="value:CreatedBy" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="CreatedDate">Created Date</label>
+                        </div>
+                        <div data-container-for="CreatedDate" class="k-edit-field">
+                            <input type="date" id="CreatedDate" name="CreatedDate" title="CreatedDate" data-bind="value:CreatedDate" data-role="datepicker">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="ModifiedBy">Modified By</label>
+                        </div>
+                        <div data-container-for="ModifiedBy" class="k-edit-field">
+                            <input type="text" id="ModifiedBy" name="ModifiedBy" title="ModifiedBy" data-bind="value:ModifiedBy" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="ModifiedDate">Modified Date</label>
+                        </div>
+                        <div data-container-for="ModifiedDate" class="k-edit-field">
+                            <input type="date" id="ModifiedDate" name="ModifiedDate" title="ModifiedDate" data-bind="value:ModifiedDate" data-role="datepicker">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="IsActive">IsActive</label>
+                        </div>
+                        <div data-container-for="IsActive" class="k-edit-field">
+                            <input type="checkbox" id="IsActive" name="IsActive" title="IsActive" data-bind="value:IsActive" data-messages="{ checked: 'YES', unchecked: 'NO' }" data-role="switch" />
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="OrderId">Order Id</label>
+                        </div>
+                        <div data-container-for="OrderId" class="k-edit-field">
+                            <input type="text" id="OrderId" name="OrderId" title="OrderId" data-bind="value:OrderId" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="applyPermissions">applyPermissions</label>
+                        </div>
+                        <div data-container-for="applyPermissions" class="k-edit-field">
+                            <input type="checkbox" id="applyPermissions" name="applyPermissions" title="applyPermissions" data-bind="value:applyPermissions" data-messages="{ checked: 'YES', unchecked: 'NO' }" data-role="switch" />
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="EmsSyncErrorMessage">EmsSyncErrorMessage</label>
+                        </div>
+                        <div data-container-for="EmsSyncErrorMessage" class="k-edit-field">
+                            <input type="text" id="EmsSyncErrorMessage" name="EmsSyncErrorMessage" title="EmsSyncErrorMessage" data-bind="value:EmsSyncErrorMessage" class="k-textbox">
+                        </div>
+
+                        <div class="k-edit-label">
+                            <label for="Ems2SyncErrorMessage">Ems2SyncErrorMessage</label>
+                        </div>
+                        <div data-container-for="Ems2SyncErrorMessage" class="k-edit-field">
+                            <input type="text" id="Ems2SyncErrorMessage" name="Ems2SyncErrorMessage" title="Ems2SyncErrorMessage" data-bind="value:Ems2SyncErrorMessage" class="k-textbox">
+                        </div>
+
+                        <div class="popPartNone">
+
+                            <div class="k-edit-label">
+                                <label for="IcdReference">IcdReference</label>
+                            </div>
+                            <div data-container-for="IcdReference" class="k-edit-field">
+                                <input type="text" id="IcdReference" name="IcdReference" title="IcdReference" data-bind="value:IcdReference" class="k-textbox">
+                            </div>
+
+                            <div class="k-edit-label">
+                                <label for="IcdCategory">IcdCategory</label>
+                            </div>
+                            <div data-container-for="IcdCategory" class="k-edit-field">
+                                <input type="text" id="IcdCategory" name="IcdCategory" title="IcdCategory" data-bind="value:IcdCategory" class="k-textbox">
+                            </div>
+
+                            <div class="k-edit-label">
+                                <label for="IcdChapter">IcdChapter</label>
+                            </div>
+                            <div data-container-for="IcdChapter" class="k-edit-field">
+                                <input type="text" id="IcdChapter" name="IcdChapter" title="IcdChapter" data-bind="value:IcdChapter" class="k-textbox">
+                            </div>
+
+                            <div class="k-edit-label">
+                                <label for="IcdSubChapter">IcdSubChapter</label>
+                            </div>
+                            <div data-container-for="IcdSubChapter" class="k-edit-field">
+                                <input type="text" id="IcdSubChapter" name="IcdSubChapter" title="IcdSubChapter" data-bind="value:IcdSubChapter" class="k-textbox">
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </script>
+
+            <!--------------- System Permission Templates Start --------------->
+
+            <script id="toolbar-template" type="text/x-kendo-template">
+                <div class="d-flex justify-content-between full-flex">
+                    <span class="k-textbox k-grid-search k-display-flex">
+                        <input autocomplete="off" placeholder="Search..." title="Search..." class="k-input">
+                        <span class="k-input-icon">
+                            <span class="k-icon k-i-search"></span>
+                        </span>
+                    </span>
+                    <div>
+                        <button type="button" class="k-button k-button-icontext sys-permission-add"><span class="k-icon k-i-plus"></span>Add new record</button>
+                        <button type="button" class="k-button k-button-icontext"><span class="k-icon k-i-reload-sm k-i-refresh-sm k-i-recurrence-sm"></span>SYNCRONIZE</button>
+                    </div>
+                </div>
+            </script>
+
+            <script type="text/x-kendo-template" id="condition-template">
+                #='If ' + data.ruleDefination.ifCondition[0].userAttribute.name#
+                #=' ' + data.ruleDefination.ifCondition[0].operator.name#
+                #=' ' + data.ruleDefination.ifCondition[0].value.name#
+            </script>
+
+            <script type="text/x-kendo-template" id="permission-template">
+                #=data.ruleDefination.thenCondition[0].permission.name + ' -'#
+                #=data.ruleDefination.thenCondition[0].value.name#
+            </script>
+
+            <script type="text/x-kendo-template" id="status-template">
+                #if(data.status) {#
+                    <input data-role="switch" type="checkbox" checked class="statusClass" disabled/> Active
+                #} else {#
+                    <input data-role="switch" type="checkbox" class="statusClass" disabled/> Inactive
+                #}#
+            </script>
+
+            <script type="text/x-kendo-template" id="application-template">
+                #=data.application.name#
+            </script>
+
+            <script type="text/x-kendo-template" id="sys-permission-popup-template">
+                <div class="sys-permission-popup-template">
+
+                    <div class="sys-pop-edit-label">
+                        <label for="name">Rule Name</label>
+                    </div>
+                    <div data-container-for="name" class="sys-pop-edit-field">
+                        <input type="text" id="name" name="name" title="name" value="#if(!data.isNew){##=data.name##}#" class="k-textbox">
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="description">Description</label>
+                    </div>
+                    <div data-container-for="description" class="sys-pop-edit-field">
+                        <input type="text" id="description" name="description" title="description" class="k-textbox" value="#if(!data.isNew){##=data.description##}#">
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="app_EMS">Application</label>
+                    </div>
+                    <div class="sys-pop-edit-field">
+                        <form>
+                        #if(!data.isNew){#
+                            #if(data.application.id == 1) {#
+                                <input type="radio" id="app_EMS" title="EMS" class="k-radio" name="application" value="1" checked>
+                            #} else {#
+                                <input type="radio" id="app_EMS" title="EMS" class="k-radio" name="application" value="1">
+                            #}#
+                        #} else {#
+                            <input type="radio" id="app_EMS" title="EMS" class="k-radio" name="application" value="1">
+                        #}#
+                        <label for="app_EMS">EMS</label>
+                        #if(!data.isNew){#
+                            #if(data.application.id == 2) {#
+                                <input type="radio" id="app_EMS2" title="EMS2" class="k-radio" name="application" checked value="2">
+                            #} else {#
+                                <input type="radio" id="app_EMS2" title="EMS2" class="k-radio" name="application" value="2">
+                            #}#
+                        #} else {#
+                            <input type="radio" id="app_EMS2" title="EMS2" class="k-radio" name="application" value="2">
+                        #}#
+                        <label for="app_EMS2">EMS2</label>
+                        </form>
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="status">Status</label>
+                    </div>
+                    <div data-container-for="data.status" class="sys-pop-edit-field">
+                        <input data-role="switch" type="checkbox" id="status" name="status" title="SyncToEms" data-bind="value:data.status, checked: data.status" data-messages="{ checked: 'YES', unchecked: 'NO' }" #if(data.status){#checked="checked"#}#/>
+                    </div>
+
+                    <hr>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="ifCondition">If Condition(s)</label>
+                    </div>
+                    <div id="ifCondition-wrap">
+                        <div class="full-flex d-flex">
+                            <input class="ifCondition" />
+                            <input class="ifOperator" />
+                            <input class="ifCountry" disabled />
+                        </div>
+                    </div>
+                    <div class="full-flex text-right">
+                        <span id="add-if-condition"><i class="k-icon k-i-plus"></i> ADD NEW CLAUSE</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="sPermission">The Permission</label>
+                    </div>
+                    <div class="full-flex">
+                        <input type="text" id="sPermission" />
+                        <input type="text" id="sPermissionResult" disabled />
+                    </div>
+
+                </div>
+
+                <div class="k-edit-buttons k-state-default">
+                    #if(data.isNew) {#
+                        <button type="button" class="k-button k-button-icontext k-primary edit-sys-permission">
+                            <span class="k-icon k-i-check"></span>Add
+                        </button>
+                    #} else {#
+                        <button type="button" class="k-button k-button-icontext k-primary edit-sys-permission">
+                            <span class="k-icon k-i-check"></span>Edit
+                        </button>
+                    #}#
+                    <button type="button" class="k-button k-button-icontext close-sys-permission">
+                        <span class="k-icon k-i-cancel"></span>Cancel
+                    </button>
+                </div>
+                #$("\#status").kendoSwitch()#
+            </script>
+
+            <!---------------------- Document Permission Template Start ----------------->
+
+            <script id="doc-toolbar-template" type="text/x-kendo-template">
+                <div class="d-flex justify-content-between full-flex">
+                    <span class="k-textbox k-grid-search k-display-flex">
+                        <input autocomplete="off" placeholder="Search..." title="Search..." class="k-input">
+                        <span class="k-input-icon">
+                            <span class="k-icon k-i-search"></span>
+                        </span>
+                    </span>
+                    <div>
+                        <button type="button" class="k-button k-button-icontext doc-permission-add"><span class="k-icon k-i-plus"></span>Add new record</button>
+                    </div>
+                </div>
+            </script>
+
+            <script type="text/x-kendo-template" id="doc-metadata-template">
+                #var documentMetaData = data.ruleDefination.DocumentMetadata[0].itemName#
+                #=data.ruleDefination[documentMetaData][0].itemName#
+            </script>
+
+            <script type="text/x-kendo-template" id="doc-metadata-template">
+                #var documentMetaData = data.ruleDefination.UserMetadata[0].itemName#
+                #=data.ruleDefination[documentMetaData][0].id#
+            </script>
+
+            <script type="text/x-kendo-template" id="doc-access-template">
+                #var accesses = [{"text":"Read"},{"text":"Read/Write"},{"text":"FullAccess"},{"text":"Deny"}]#
+                #=accesses[grantType - 1].text#
+            </script>
+
+            <script type="text/x-kendo-template" id="doc-permission-popup-template">
+                <div class="doc-permission-popup-template">
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_name">Name</label>
+                    </div>
+                    <div data-container-for="doc_name" class="sys-pop-edit-field">
+                        <input type="text" id="doc_name" name="doc_name" title="doc_name" value="#if(!data.isNew){##=data.name##}#" class="k-textbox">
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_permission">Permission Type</label>
+                    </div>
+                    <div class="sys-pop-edit-field">
+                        <form>
+                            #if(!data.isNew){#
+                                #if(data.grantType == 1) {#
+                                    <input type="radio" id="doc_permission_1" title="doc_permission" class="k-radio" name="doc_permission" value="1" checked>
+                                #} else {#
+                                    <input type="radio" id="doc_permission_1" title="doc_permission" class="k-radio" name="doc_permission" value="1">
+                                #}#
+                            #} else {#
+                                <input type="radio" id="doc_permission_1" title="doc_permission" class="k-radio" name="doc_permission" value="1">
+                            #}#
+                            <label for="doc_permission_1">Read</label>
+
+                            #if(!data.isNew){#
+                                #if(data.grantType == 2) {#
+                                    <input type="radio" id="doc_permission_2" title="doc_permission" class="k-radio" name="doc_permission" checked value="2">
+                                #} else {#
+                                    <input type="radio" id="doc_permission_2" title="doc_permission" class="k-radio" name="doc_permission" value="2">
+                                #}#
+                            #} else {#
+                                <input type="radio" id="doc_permission_2" title="doc_permission" class="k-radio" name="doc_permission" value="2">
+                            #}#
+                            <label for="doc_permission_2">ReadWrite</label>
+
+                            #if(!data.isNew){#
+                                #if(data.grantType == 3) {#
+                                    <input type="radio" id="doc_permission_3" title="doc_permission" class="k-radio" name="doc_permission" checked value="3">
+                                #} else {#
+                                    <input type="radio" id="doc_permission_3" title="doc_permission" class="k-radio" name="doc_permission" value="3">
+                                #}#
+                            #} else {#
+                                <input type="radio" id="doc_permission_3" title="doc_permission" class="k-radio" name="doc_permission" value="3">
+                            #}#
+                            <label for="doc_permission_3">FullAccess</label>
+
+                            #if(!data.isNew){#
+                                #if(data.grantType == 4) {#
+                                    <input type="radio" id="doc_permission_4" title="doc_permission" class="k-radio" name="doc_permission" checked value="4">
+                                #} else {#
+                                    <input type="radio" id="doc_permission_4" title="doc_permission" class="k-radio" name="doc_permission" value="4">
+                                #}#
+                            #} else {#
+                                <input type="radio" id="doc_permission_4" title="doc_permission" class="k-radio" name="doc_permission" value="4">
+                            #}#
+                            <label for="doc_permission_4">Deny</label>
+                        </form>
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="active_status">Active Status</label>
+                    </div>
+                    <div data-container-for="data.status" class="sys-pop-edit-field">
+                        <input data-role="switch" type="checkbox" id="active_status" name="status" title="status" data-bind="value:data.status, checked: data.status" data-messages="{ checked: 'YES', unchecked: 'NO' }" #if(data.status){#checked="checked"#}#/>
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_description">Description</label>
+                    </div>
+                    <div data-container-for="data.permissionDescription" class="sys-pop-edit-field">
+                        <input type="text" id="doc_description" name="doc_description" title="doc_description" value="#if(!data.isNew){##=data.permissionDescription##}#" class="k-textbox">
+                    </div>
+
+                    <hr>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_meta_data">Document Metadata</label>
+                    </div>
+                    <div class="sys-pop-edit-field">
+                        <select id="doc_meta_data" multiple="multiple" data-placeholder="Select Document Metadata...">
+                        </select>
+                    </div>
+
+                    <div id="doc-metadata-wrap"></div>
+
+                    <hr>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="user_meta_data">User Metadata</label>
+                    </div>
+                    <div class="sys-pop-edit-field">
+                        <select id="user_meta_data" multiple="multiple" data-placeholder="Select User Metadata...">
+                        </select>
+                    </div>
+
+                    <div id="user-metadata-wrap"></div>
+
+                </div>
+
+                <div class="k-edit-buttons k-state-default">
+                    #if(data.isNew){#
+                        <button type="button" class="k-button k-button-icontext k-primary edit-doc-permission">
+                            <span class="k-icon k-i-check"></span>Add
+                        </button>
+                    #} else {#
+                        <button type="button" class="k-button k-button-icontext k-primary edit-doc-permission">
+                            <span class="k-icon k-i-check"></span>Edit
+                        </button>
+                    #}#
+                    <button type="button" class="k-button k-button-icontext close-doc-permission">
+                        <span class="k-icon k-i-cancel"></span>Cancel
+                    </button>
+                </div>
+                #$("\#status").kendoSwitch()#
+            </script>
+
+        </div>
+    </div>
+    <div id="sys-pop"></div>
+    <div id="doc-pop"></div>
+<script type="text/javascript" src="assets/js/custom.js"></script>
+</body>
+</html>

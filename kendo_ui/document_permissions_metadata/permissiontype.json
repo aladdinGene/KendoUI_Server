@@ -1,0 +1,1 @@
+{"value":[{"Id":1,"Name":"Read","IsActive":true,"DisplayName":"Read"},{"Id":2,"Name":"ReadWrite","IsActive":true,"DisplayName":"Read/Write"},{"Id":3,"Name":"FullAccess","IsActive":true,"DisplayName":"FullAccess"},{"Id":4,"Name":"Deny","IsActive":true,"DisplayName":"Deny"}]}

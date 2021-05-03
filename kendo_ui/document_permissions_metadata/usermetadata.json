@@ -1,0 +1,12 @@
+[{"id":1,"name":"Agency"},
+{"id":2,"name":"Internal External"},
+{"id":3,"name":"User Org Path"},
+{"id":4,"name":"User Permission Group"},
+{"id":5,"name":"User Base Location"},
+{"id":6,"name":"Assigned Location"},
+{"id":7,"name":"Deployed Location"},
+{"id":8,"name":"User Available Emergencies"},
+{"id":9,"name":"User Available Events"},
+{"id":10,"name":"User Assigned Events"},
+{"id":11,"name":"User Linked Emergencies"},
+{"id":12,"name":"User Linked Events"}]

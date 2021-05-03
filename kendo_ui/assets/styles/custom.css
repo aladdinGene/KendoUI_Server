@@ -1,0 +1,205 @@
+.full-flex{
+    flex: 0 0 100% !important;
+    margin-bottom: 10px;
+}
+.flex-center{
+    justify-content: center;
+    align-items: center;
+}
+.d-flex{
+    display: flex;
+}
+.text-right{
+    text-align: right;
+}
+.justify-content-between{
+    justify-content: space-between;
+}
+.k-toolbar button.k-button{
+    color: #FFF;
+    background-color: #196aaa;
+}
+.ml-30{
+    margin-left: 30px;
+}
+.mb-20{
+    margin-bottom: 20px;
+}
+
+
+
+#main-wrapper{
+    padding: 20px 0;
+}
+#main-wrapper .k-content{
+    padding: 0;
+    margin: 0;
+}
+#treelist{
+    padding: 0 20px;
+    background-color: transparent;
+}
+.k-toolbar.k-grid-toolbar{
+    background: none;
+}
+.k-grid-header th.k-header{
+    vertical-align: middle;
+    text-align: center;
+    white-space: normal;
+}
+#treelist .k-toolbar{
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+}
+#treelist .k-toolbar:before{
+    content: none;
+}
+#treelist .k-grid-header, #treelist .k-grid-content, #treelist .k-pager-wrap{
+    /*border-left: solid 1px #efefef;*/
+    border-right: solid 1px #c5c5c5;
+    box-sizing: border-box;
+}
+#treelist .k-filter-row>th:first-child, .k-grid tbody td:first-child, #treelist .k-grid tfoot td:first-child, #treelist .k-grid-header th.k-header:first-child{
+    border-left-width: 1px;
+}
+#treelist button[data-command="create"].k-button{
+    color: #FFF;
+    background-color: #196aaa;
+}
+.k-grid-header-wrap table thead tr:last-child>th{
+    background-color: #0991cb85;
+}
+.k-grid-header-wrap table thead tr:first-child>th{
+    background-color: #008dc9;
+    color: #FFF;
+}
+.k-grid-header-wrap table thead tr:first-child>th>a{
+    color: #FFF !important;
+}
+#main-wrapper .k-tabstrip-top>.k-tabstrip-items .k-state-active{
+    border: none;
+    margin-bottom: 0;
+    border-top: solid 1px #3b8fc8;
+}
+.k-loading.k-complete{
+    border: none;
+}
+.k-tabstrip-top>.k-tabstrip-items .k-item{
+    margin: 0;
+    border: none;
+    font-size: 14px;
+}
+.k-tabstrip-top>.k-tabstrip-items .k-item>.k-link{
+    color: #3b8Fc8;
+    font-weight: 600;
+}
+#main-wrapper .k-tabstrip-items{
+    display: flex;
+    justify-content: center;
+}
+#main-wrapper #tabstrip.k-header{
+    border: none;
+    background: none;
+    box-shadow: none;
+}
+.blue-bar{
+    color: #FFF;
+    background-color: #008dc9;
+    font-size: 16px;
+    padding: 10px 20px;
+}
+.createTemplate{
+    height: 400px;
+    overflow: auto;
+}
+.popNone{
+    display: none;
+}
+.popNone.show{
+    display: block;
+}
+.popPartNone{
+    display: none;
+}
+.popPartNone.show{
+    display: block;
+}
+
+/************************* System Permission Style *******************/
+#system-permission, #document-permission{
+    padding: 0 20px;
+}
+.sys-permission-popup-template, .doc-permission-popup-template{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 20px;
+    max-height: 500px;
+    overflow: auto;
+}
+.sys-pop-edit-label{
+    flex: 0 0 40%;
+    max-width: 40%;
+    margin-bottom: 10px;
+    text-align: left;
+}
+.sys-pop-edit-label>label{
+    /*margin-left: 20px;*/
+}
+.sys-pop-edit-field{
+    flex: 0 0 60%;
+    margin-bottom: 10px;
+    text-align: left;
+}
+.k-widget.k-dropdown+.k-dropdown{
+    margin-left: 10px;
+}
+.if-delete{
+    color: #f56e21;
+    cursor: pointer;
+}
+#add-if-condition{
+    color: #546dab;
+    cursor: pointer;
+}
+#ifCondition-wrap{
+    width: 100%;
+}
+#ifCondition-wrap>div>*{
+    flex: 0 0 23%;
+    max-width: 23%;
+}
+#ifCondition-wrap>div{
+    justify-content: flex-start;
+}
+.sys-permission-popup-template hr, .doc-permission-popup-template hr{
+    margin:10px 0;
+    width: 100%;
+}
+.k-edit-buttons{
+    padding: .6em;
+    text-align: right;
+}
+
+
+
+
+
+
+#doc-metadata-wrap, #user-metadata-wrap{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex: 0 0 100%;
+    width: 100%;
+}
+#user-simulation{
+    padding: 20px;
+}
+#simul-filter-wrap{
+    width: 100%;
+}
+#simul-filter-wrap button[aria-label='Apply']{
+    float: right;
+}
