@@ -908,13 +908,43 @@ $(document).ready(function() {
 
     $.getJSON( "simulate_json/specific_user.json").then(function( data ) {
 
-        var categories = $("#spec-user-select").kendoDropDownList({
-            optionLabel: "Select user...",
+        var specific_user_ds = new kendo.data.DataSource({
+            data: data.data.users
+        });
+
+        var categories = $("#spec-user-select").kendoComboBox({
+            placeholder: "Begin typing and select",
             dataTextField: "firstname",
-            height: 310,
-            dataSource: data.data.users,
-            template: '#=firstname# #=lastname# - #=emailaddress#'
-        }).data("kendoDropDownList");
+            dataSource: specific_user_ds,
+            filter: "contains",
+            suggest: true,
+            template: '#=firstname# #=lastname# - #=emailaddress#',
+            filtering: function (ev) {
+                var filterValue = ev.filter != undefined ? ev.filter.value : ''
+                ev.preventDefault();
+                this.dataSource.filter({
+                    logic: "or",
+                    filters: [
+                        {
+                            field: "firstname",
+                            operator: "contains",
+                            value: filterValue
+                        },
+                        {
+                            field: "lastname",
+                            operator: "contains",
+                            value: filterValue
+                        },
+                        {
+                            field: "emailaddress",
+                            operator: "contains",
+                            value: filterValue
+                        }
+                    ]
+                });
+            }
+        }).data("kendoComboBox");
+        
     });
 
     var simul_path = './simulate_json/'

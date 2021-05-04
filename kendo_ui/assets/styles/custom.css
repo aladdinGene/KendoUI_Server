@@ -203,3 +203,6 @@
 #simul-filter-wrap button[aria-label='Apply']{
     float: right;
 }
+.k-widget.k-combobox{
+    min-width: 300px;
+}
