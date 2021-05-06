@@ -76,7 +76,7 @@ function getTokenRedirect(request) {
 function fetchusers()
 {
     getTokenRedirect(loginRequest).then(response => {
-        fetch('https://emrsapi.azurewebsites.net/api/documents/drives', {
+        fetch('https://emrsapi.azurewebsites.net/api/referenceData/items/Hazard', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
