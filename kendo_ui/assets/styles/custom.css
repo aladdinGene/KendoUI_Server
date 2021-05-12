@@ -51,6 +51,7 @@
     justify-content: space-between;
     align-items: center;
     height: 60px;
+    width: 100%;
 }
 #treelist .k-toolbar:before{
     content: none;
@@ -111,6 +112,7 @@
 }
 .createTemplate{
     height: 400px;
+    padding: 20px 0;
     overflow: auto;
 }
 .popNone{
@@ -205,4 +207,10 @@
 }
 .k-widget.k-combobox{
     min-width: 300px;
+}
+span.k-datetimepicker{
+    border: none;
+}
+.k-datetimepicker .k-picker-wrap .k-icon{
+    position: relative;
 }

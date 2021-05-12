@@ -77,7 +77,7 @@
             <!--------------- Reference Data Template Start --------------->
 
             <script id="id-template" type="text/x-kendo-template">
-                #if (data.Id > -1) {#
+                #if(data.parentid != null) {#
                     #= data.Id #
                 #}#
             </script>
@@ -110,7 +110,49 @@
                 #}#
             </script>
 
+            <script type="text/x-kendo-template" id="reference-toolbar-template">
+                <div class="k-toolbar k-grid-toolbar">
+                    <span class="k-textbox k-grid-search k-display-flex">
+                        <input autocomplete="off" placeholder="Search..." title="Search..." class="k-input">
+                        <span class="k-input-icon">
+                            <span class="k-icon k-i-search"></span>
+                        </span>
+                    </span>
+                    <button type="button" onClick="add_child(0)" class="k-button k-button-icontext k-grid-add"><span class="k-icon k-i-plus"></span>Add new record
+                    </button>
+                </div>
+            </script>
+
+            <script type="text/x-kendo-template" id="reference-popup-template">
+                <div class="createTemplate">
+                    <div class="k-edit-label">
+                        <label for="masterType">Master Type</label>
+                    </div>
+                    <div data-container-for="masterType" class="k-edit-field">
+                        <input id="masterType" 
+                        />
+                    </div>
+                    <div id="parent-type-wrap"></div>
+                    <div id="reference-modal-content"></div>
+                </div>
+                <div class="k-edit-buttons k-state-default">
+                    #if(data.isNew) {#
+                        <button type="button" class="k-button k-button-icontext k-primary add-ref-data-btn">
+                            <span class="k-icon k-i-check"></span>Add
+                        </button>
+                    #} else {#
+                        <button type="button" class="k-button k-button-icontext k-primary edit-ref-data-btn">
+                            <span class="k-icon k-i-check"></span>Edit
+                        </button>
+                    #}#
+                    <button type="button" class="k-button k-button-icontext close-ref-data-btn">
+                        <span class="k-icon k-i-cancel"></span>Cancel
+                    </button>
+                </div>
+            </script>
+
             <script type="text/x-kendo-template" id="popup-template">
+                #console.log(data)#
                 <div class="createTemplate">
                     <div class="k-edit-label">
                         <label for="masterType">Master Type</label>
@@ -128,7 +170,7 @@
                             data-change="masterTypeChange"
                         />
                     </div>
-                    #if(!data.isNew() && data.AssignmentFunctionId != null && data.AssignmentFunctionId > -1) {#
+                    #if(!data.isNew() && data.parentid != null && data.parentid > -1) {#
                         <div class="k-edit-label">
                             <label for="AssignmentFunctionId">Parent Type</label>
                         </div>
@@ -464,7 +506,6 @@
                         <span class="k-icon k-i-cancel"></span>Cancel
                     </button>
                 </div>
-                #$("\#status").kendoSwitch()#
             </script>
 
             <!---------------------- Document Permission Template Start ----------------->
@@ -620,7 +661,7 @@
     </div>
     <div id="sys-pop"></div>
     <div id="doc-pop"></div>
-    <button onclick="fetchusers()">Get AJAX</button>
+    <div id="reference-pop"></div>
 <script type="text/javascript" src="assets/js/custom.js"></script>
 </body>
 </html>
