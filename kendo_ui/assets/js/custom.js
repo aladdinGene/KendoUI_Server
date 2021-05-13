@@ -42,6 +42,7 @@ let username = "";
 function handleResponse(resp) {
     if (resp !== null) {
         username = resp.account.username
+        fetchMasterType()
     } else {
         /**
          * See here for more info on account retrieval: 
@@ -53,6 +54,7 @@ function handleResponse(resp) {
         else 
         {
             username = currentAccounts[0].username;
+            fetchMasterType()
         }
     }
 }
@@ -159,6 +161,7 @@ var fetchData = async () => {
                             referenceDatas.push(temp_data_row)
                             if((referenceDatas.length == total_index) && (present_index == urls.length)){
                                 myResolve()
+                                console.log(referenceDatas)
                             }
                         }
                         // reference_items[url] = temp_data
@@ -312,7 +315,6 @@ function referenceTreeInit(){
         }
     })
 }
-setTimeout(fetchMasterType, 2000)
 
 //================== MSAL Auth Block End =============
 
