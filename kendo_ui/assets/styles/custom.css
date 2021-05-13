@@ -214,3 +214,46 @@ span.k-datetimepicker{
 .k-datetimepicker .k-picker-wrap .k-icon{
     position: relative;
 }
+
+#loader-wrap{
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 10000;
+    background-color: rgba(0, 0, 0, 0.3);
+    text-align: center;
+    opacity: 1;
+    transition: .5s;
+}
+#loader-wrap.hide{
+    opacity: 0;
+    pointer-events: none;
+}
+#loader{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.k-edit-buttons{
+    position: relative;
+}
+.k-error-msg{
+    position: absolute;
+    top: 50%;
+    right: 150px;
+    left: 10px;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: red;
+    text-align: left;
+}
+.k-edit-field .k-widget, .k-edit-field input[type=text], .k-edit-field input[type=number], .k-edit-field input[type=datetime-local], .sys-pop-edit-field .k-widget, .sys-pop-edit-field input[type=text], .sys-pop-edit-field input[type=number], .sys-pop-edit-field input[type=datetime-local]{
+    width: 90%;
+}
+.k-edit-field .k-widget.k-switch, .sys-pop-edit-field .k-widget.k-switch{
+    width: 65px;
+}

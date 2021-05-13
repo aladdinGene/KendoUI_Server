@@ -7,12 +7,18 @@ var dataSourceMasterType = [
     ];
 
 var field_order = new Array();
+
+
+var loader = $('#loader').kendoLoader({
+        themeColor:'primary',
+        type: "converging-spinner"
+    }).data("kendoLoader");
 //================== MSAL Auth Block Start =============
 var EMRSconfig={
     clientId: "cfc9f18c-9a43-4d6a-a556-f338be15619d",
     authority: "https://login.microsoftonline.com/171d96c1-7170-4561-a662-66c07e043e23",
-    // redirectUri: "http://localhost:44354",
-    redirectUri: "https://kendoui.azurewebsites.net",
+    // redirectUri: "https://kendoui.azurewebsites.net",
+    redirectUri: "http://localhost:44354",
     scopes: ["api://7b78a6e1-50a5-475d-b109-d7c18b63f513/EMRS_API"]
 };
 var loginRequest = {
@@ -75,7 +81,7 @@ function getTokenRedirect(request) {
 }
 let referenceDatas = []
 let urls = []
-async function fetchusers()
+async function fetchMasterType()
 {
     getTokenRedirect(loginRequest).then(response => {
         fetch(' https://emrsapi.azurewebsites.net/api/graphql', {
@@ -90,7 +96,7 @@ async function fetchusers()
         .then(data => {
             referenceDatas = data.data.mastertypes
             for(var i=0;i<referenceDatas.length;i++){
-                referenceDatas[i].Name = referenceDatas[i].name
+                referenceDatas[i].Name = referenceDatas[i].displayname
             }
             for(var i=0;i<referenceDatas.length;i++){
                 urls.push(referenceDatas[i])
@@ -115,69 +121,66 @@ async function fetchusers()
         });
         
     }).catch(error => {
-        console.error(error);
+        kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
     });
     
 }
 
 
-// const myApp = (function() {  
-//     var reference_items = {}
-    var fetchData = async () => {
-        let myPromise = new Promise(async function(myResolve, myReject) {
-            var total_index = urls.length
-            var present_index = 0
-            try {
-                const response = await Promise.all(urls.map((url, url_index) =>{
-                    getTokenRedirect(loginRequest).then(response => {
-                        fetch('https://emrsapi.azurewebsites.net/api/referenceData/items/' + url.name, {
-                          method: 'GET',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            "Authorization": "Bearer " + response.accessToken
-                          },
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            present_index++
-                            var temp_data = data.value
-                            total_index += temp_data.length;
-                            for(var i=0;i<temp_data.length;i++){
-                                var temp_data_row = temp_data[i]
-                                temp_data_row.id = url.id * 10000 + temp_data_row.Id
-                                temp_data_row.masterType = url.id
-                                if(url.parentid == null) {
-                                    temp_data_row.parentid = url.id
-                                } else {
-                                    temp_data_row.parentid = url.parentid * 10000 + temp_data_row[url.parentName + 'Id']
-                                }
-                                referenceDatas.push(temp_data_row)
-                                if((referenceDatas.length == total_index) && (present_index == urls.length)){
-                                    myResolve()
-                                }
+var fetchData = async () => {
+    let myPromise = new Promise(async function(myResolve, myReject) {
+        var total_index = urls.length
+        var present_index = 0
+        try {
+            const response = await Promise.all(urls.map((url, url_index) =>{
+                getTokenRedirect(loginRequest).then(response => {
+                    fetch('https://emrsapi.azurewebsites.net/api/referenceData/items/' + url.name, {
+                      method: 'GET',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + response.accessToken
+                      },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        present_index++
+                        var temp_data = data.value
+                        total_index += temp_data.length;
+                        for(var i=0;i<temp_data.length;i++){
+                            var temp_data_row = temp_data[i]
+                            temp_data_row.id = url.id * 10000 + temp_data_row.Id
+                            temp_data_row.masterType = url.id
+                            temp_data_row.masterName = url.displayname
+                            if(url.parentid == null) {
+                                temp_data_row.parentid = url.id
+                            } else {
+                                temp_data_row.parentid = url.parentid * 10000 + temp_data_row[url.parentName + 'Id']
                             }
-                            // reference_items[url] = temp_data
-                        })
-                        .catch((error) => {
-                            console.log(error)
-                        });
-                        
-                    }).catch(error => {
-                        console.error(error);
+                            referenceDatas.push(temp_data_row)
+                            if((referenceDatas.length == total_index) && (present_index == urls.length)){
+                                myResolve()
+                            }
+                        }
+                        // reference_items[url] = temp_data
+                    })
+                    .catch((error) => {
+                        console.log(error)
                     });
-                })).then(async (json)=> {
-                    // var aaaaaa = referenceDatas
-                    // console.log(referenceDatas)
-                    // await referenceTreeInit(aaaaaa)
                     
-                })
-            } catch (error) {
-                console.error(error);
-            }
-        }).then(() => {
-            referenceTreeInit()
-        })
-    }
+                }).catch(error => {
+                    kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+                });
+            })).then(async (json)=> {
+                
+            })
+        } catch (error) {
+            console.error(error);
+        }
+    }).then(() => {
+        $('#loader-wrap').addClass('hide')
+        referenceTreeInit()
+    })
+}
 
 
 function referenceTreeInit(){
@@ -224,7 +227,6 @@ function referenceTreeInit(){
                     id: { type: "Number", editable: false, nullable: false },
                     parentid: { type: "Number", editable: false, nullable: true},
                 },
-                // expanded: true
             }
         },
         pageSize: 15
@@ -233,9 +235,7 @@ function referenceTreeInit(){
 
     refTreeList = $("#treelist").kendoTreeList({
         dataSource: dataSource,
-        // toolbar: kendo.template($("#toolbar-template").html()) ,
         toolbar: $("#reference-toolbar-template").html(),
-        // height: 600,
         editable: {
             mode: "popup",
             template: $("#popup-template").html(),
@@ -261,6 +261,7 @@ function referenceTreeInit(){
             title: "EMS",
             columns: [
                 { field: "Name", expandable: true, title: "Name", width: 200},
+                { field: "masterName", title: "Master Type", width: 150},
                 { field: "id", title: "ID", template: $("#id-template").html()},
                 { field: "EmsCode", title: "EMS Code"},
                 { field: "EmsName", title: "EMS Name"},
@@ -288,7 +289,7 @@ function referenceTreeInit(){
                 buttons += '</div>';
                 return buttons;
             },
-            width: 270 
+            width: 180 
         }],
         pageable: {
             pageSize: 15,
@@ -311,7 +312,7 @@ function referenceTreeInit(){
         }
     })
 }
-setTimeout(fetchusers, 2000)
+setTimeout(fetchMasterType, 2000)
 
 //================== MSAL Auth Block End =============
 
@@ -380,6 +381,8 @@ function masterTypeChange(e){
                 }
             }
         })
+    }).catch(error => {
+        kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
     })
 }
 
@@ -387,7 +390,7 @@ function checkFieldExist(fields) {
     field_order.map((field_detail) => {
         fields.some((field) => {
             if(field_detail.fieldname.toLowerCase() == field.name.toLowerCase()){
-                generateReferenceFields(field.type.name, field_detail.text, field_detail.fieldname)
+                generateReferenceFields(field.type.name, field_detail.text, field_detail.fieldname, field_detail.request)
                 return true
             }
             return false
@@ -395,47 +398,67 @@ function checkFieldExist(fields) {
     })
 }
 
-function generateReferenceFields(input_type, label_text, case_text){
+function generateReferenceFields(input_type, label_text, case_text, status){
     switch (input_type) {
         case 'String':
-            $("#reference-modal-content").append($('<div />').addClass('k-edit-label').append($('<label />').text(label_text)))
-                .append($('<div />').addClass('k-edit-field').append($('<input>').attr('type', 'text').attr('id', 'reference-'+case_text).addClass('k-textbox')))
-            if(ref_editting) {
-                $('#reference-'+case_text).val(ref_edit_data[case_text])
+            if(ref_editting || status) {
+                $("#reference-modal-content").append($('<div />').addClass('k-edit-label').append($('<label />').text(label_text)))
+                    .append($('<div />').addClass('k-edit-field').append($('<input>').attr('type', 'text').attr('id', 'reference-'+case_text).addClass('k-textbox')))
+                if(ref_editting) {
+                    $('#reference-'+case_text).val(ref_edit_data[case_text])
+                }
+                if(!status) {
+                    $('#reference-'+case_text).attr('readonly', true)
+                }
             }
             break;
         case 'Int':
-            if(ref_editting || case_text != 'Id') {
-                $("#reference-modal-content").append($('<div />').addClass('k-edit-label').append($('<label />').text(label_text)))
-                    .append($('<div />').addClass('k-edit-field').append($('<input>').attr('type', 'number').attr('id', 'reference-'+case_text).addClass('k-textbox')))
-                if(case_text == 'Id') $("#reference-Id").attr('readonly', true)
-                if(ref_editting) {
-                    $('#reference-'+case_text).val(ref_edit_data[case_text])
+            if(ref_editting || status) {
+                if(ref_editting || case_text != 'Id') {
+                    $("#reference-modal-content").append($('<div />').addClass('k-edit-label').append($('<label />').text(label_text)))
+                        .append($('<div />').addClass('k-edit-field').append($('<input>').attr('type', 'number').attr('id', 'reference-'+case_text).addClass('k-textbox')))
+                    if(case_text == 'Id') $("#reference-Id").attr('readonly', true)
+                    if(ref_editting) {
+                        $('#reference-'+case_text).val(ref_edit_data[case_text])
+                    }
+                    if(!status) {
+                        $('#reference-'+case_text).attr('readonly', true)
+                    }
                 }
             }
             break;
         case 'Boolean':
-            $("#reference-modal-content").append($('<div />').addClass('k-edit-label').append($('<label />').text(label_text)))
-                .append($('<div />').addClass('k-edit-field').append($('<input>').attr('type', 'checkbox').attr('id', 'reference-'+case_text).addClass('k-textbox')))
-            if(ref_editting) {
-                $('#reference-'+case_text).attr('checked', ref_edit_data[case_text])
-            }
-            $('#reference-'+case_text).kendoSwitch({
-                messages: {
-                    checked: "YES",
-                    unchecked: "NO"
+            if(ref_editting || status) {
+                $("#reference-modal-content").append($('<div />').addClass('k-edit-label').append($('<label />').text(label_text)))
+                    .append($('<div />').addClass('k-edit-field').append($('<input>').attr('type', 'checkbox').attr('id', 'reference-'+case_text).addClass('k-textbox')))
+                if(ref_editting) {
+                    $('#reference-'+case_text).attr('checked', ref_edit_data[case_text])
                 }
-            });
+                if(!status) {
+                    $('#reference-'+case_text).attr('readonly', true)
+                }
+                $('#reference-'+case_text).kendoSwitch({
+                    messages: {
+                        checked: "YES",
+                        unchecked: "NO"
+                    }
+                });
+            }
             break;
         case 'DateTime':
-            $("#reference-modal-content").append($('<div />').addClass('k-edit-label').append($('<label />').text(label_text)))
-                .append($('<div />').addClass('k-edit-field').append($('<input>').attr('id', 'reference-'+case_text).addClass('k-textbox')))
-            if(ref_editting) {
-                $('#reference-'+case_text).val(ref_edit_data[case_text])
+            if(ref_editting || status) {
+                $("#reference-modal-content").append($('<div />').addClass('k-edit-label').append($('<label />').text(label_text)))
+                    .append($('<div />').addClass('k-edit-field').append($('<input>').attr('id', 'reference-'+case_text).addClass('k-textbox')))
+                if(ref_editting) {
+                    $('#reference-'+case_text).val(ref_edit_data[case_text])
+                }
+                if(!status) {
+                    $('#reference-'+case_text).attr('readonly', true)
+                }
+                $('#reference-'+case_text).kendoDateTimePicker({
+                    componentType: "modern"
+                });
             }
-            $('#reference-'+case_text).kendoDateTimePicker({
-                componentType: "modern"
-            });
             break;
     }
 }
@@ -451,7 +474,7 @@ let reference_pop = $("#reference-pop").kendoWindow({
     },
     actions: ["Minimize", "Maximize", "Close"],
     draggable: true,
-    resizable: true,
+    resizable: false,
     width: "500px",
     modal: true,
     title: "Edit",
@@ -459,7 +482,7 @@ let reference_pop = $("#reference-pop").kendoWindow({
     open: function(e) {
         $("#masterType").kendoDropDownList({
             optionLabel: "Select",
-            dataTextField: "name",
+            dataTextField: "Name",
             dataValueField: "id",
             dataSource: urls,
             change: masterTypeChange
@@ -545,10 +568,25 @@ function add_child(masterType) {
                         $("#treelist").data("kendoTreeList").dataSource.pushCreate(newElement);
                         reference_pop.data("kendoWindow").close()
                     } else {
-                        console.log(data.error.message)
+                        $('.k-error-msg').text('')
+                        var errors = data.error.message
+                        console.log(errors)
+                        for(var i=0;i<errors.length;i++){
+                            $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+                        }
+                    }
+                },
+                error: function (data) {
+                    $('.k-error-msg').text('')
+                    var errors = data.responseJSON.error.message
+                    console.log(errors)
+                    for(var i=0;i<errors.length;i++){
+                        $('.k-error-msg').html($('.k-error-msg').text() + '<br>' + errors[i])
                     }
                 }
             });
+        }).catch(error => {
+            kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
         })
     })
 
@@ -623,9 +661,26 @@ function edit_child(dataIndex, masterType){
                         referenceDatas[ref_edit_num] = updatedElement
                         $("#treelist").data("kendoTreeList").dataSource.pushUpdate(updatedElement);
                         reference_pop.data("kendoWindow").close()
+                    } else {
+                        $('.k-error-msg').text('')
+                        var errors = data.error.message
+                        console.log(errors)
+                        for(var i=0;i<errors.length;i++){
+                            $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+                        }
+                    }
+                },
+                error: function (data) {
+                    $('.k-error-msg').text('')
+                    var errors = data.responseJSON.error.message
+                    console.log(errors)
+                    for(var i=0;i<errors.length;i++){
+                        $('.k-error-msg').html($('.k-error-msg').text() + '<br>' + errors[i])
                     }
                 }
             });
+        }).catch(error => {
+            kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
         })
     })
     
@@ -772,7 +827,7 @@ $(document).ready(function() {
         },
         actions: ["Custom", "Minimize", "Maximize", "Close"],
         draggable: true,
-        resizable: true,
+        resizable: false,
         width: "500px",
         modal: true,
         title: "Edit",
@@ -1038,7 +1093,7 @@ $(document).ready(function() {
         },
         actions: ["Minimize", "Maximize", "Close"],
         draggable: true,
-        resizable: true,
+        resizable: false,
         width: "500px",
         modal: true,
         title: "Edit",
@@ -1246,7 +1301,6 @@ $(document).ready(function() {
 
     $("#simul-filter-wrap").kendoFilter({
         dataSource: simul_dataSource,
-        // expressionPreview: true,
         applyButton: true,
         fields: [
             { name: "emailaddress", type: "string", label: "E-mail address" },
