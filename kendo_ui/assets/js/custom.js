@@ -17,6 +17,7 @@ var loader = $('#loader').kendoLoader({
 var EMRSconfig={
     clientId: "cfc9f18c-9a43-4d6a-a556-f338be15619d",
     authority: "https://login.microsoftonline.com/171d96c1-7170-4561-a662-66c07e043e23",
+    // redirectUri: "https://www.emdemos.com/EMRSAdmin",
     redirectUri: "https://kendoui.azurewebsites.net",
     // redirectUri: "http://localhost:44354",
     scopes: ["api://7b78a6e1-50a5-475d-b109-d7c18b63f513/EMRS_API"]
@@ -161,7 +162,6 @@ var fetchData = async () => {
                             referenceDatas.push(temp_data_row)
                             if((referenceDatas.length == total_index) && (present_index == urls.length)){
                                 myResolve()
-                                console.log(referenceDatas)
                             }
                         }
                         // reference_items[url] = temp_data
@@ -209,7 +209,6 @@ function referenceTreeInit(){
                 e.success();
             },
             create: function(e) {
-                console.log(e.data.models)
                 e.success(e.data.models);
             },
             edit: function(e) {
@@ -304,7 +303,6 @@ function referenceTreeInit(){
             pageSizes: true
         },
         drop: function(e) {
-            console.log("drop", e);
             if((e.position == 'over') || (e.source.parentid != e.destination.parentid)) {
                 e.preventDefault();
             } else {
@@ -344,10 +342,21 @@ function referenceTreeInit(){
                                 contentType: false,
                                 processData: false,
                                 success: function (data) {
-                                    console.log('swap success')
                                     var first_order_id = e.source.OrderId;
                                     e.source.set("OrderId", e.destination.OrderId);
-                                    e.destination.set("OrderId", first_order_id)
+                                    e.destination.set("OrderId", first_order_id);
+                                    var order_fixed = 0;
+                                    for(i=0;i<referenceDatas.length;i++){
+                                        if(referenceDatas[i].id == e.source.id) {
+                                            referenceDatas[i].OrderId = e.source.OrderId;
+                                            order_fixed++;
+                                        }
+                                        if(referenceDatas[i].id == e.destination.id) {
+                                            referenceDatas[i].OrderId = e.destination.OrderId;
+                                            order_fixed++;
+                                        }
+                                        if(order_fixed == 2) break;
+                                    }
                                     e.sender.refresh();
                                     $('#loader-wrap').addClass('hide')
                                 },
@@ -408,7 +417,6 @@ function masterTypeChange(e){
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data)
             $("#reference-modal-content").empty()
             $("#parent-type-wrap").empty()
             checkFieldExist(data.data.__type.fields)
@@ -429,7 +437,6 @@ function masterTypeChange(e){
                                     })
                                     .then(response => response.json())
                                     .then(data => {
-                                        console.log(data)
                                         $("#parent-type").kendoDropDownList({
                                             optionLabel: "Select",
                                             dataTextField: "Name",
@@ -609,7 +616,6 @@ function add_child(masterType) {
                 processData: false,
                 success: function (data) {
                     if(data.value) {
-                        console.log(data.value)
                         var newElement = data.value
                         var masterDetails;
 
@@ -633,8 +639,6 @@ function add_child(masterType) {
 
                         newElement.id = masterDetails.id * 10000 + newElement.Id
                         newElement.masterType = masterDetails.id
-
-                        console.log(newElement)
                         
                         referenceDatas.push(newElement)
                         $("#treelist").data("kendoTreeList").dataSource.pushCreate(newElement);
@@ -642,7 +646,6 @@ function add_child(masterType) {
                     } else {
                         $('.k-error-msg').text('')
                         var errors = data.error.message
-                        console.log(errors)
                         for(var i=0;i<errors.length;i++){
                             $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
                         }
@@ -651,7 +654,6 @@ function add_child(masterType) {
                 error: function (data) {
                     $('.k-error-msg').text('')
                     var errors = data.responseJSON.error.message
-                    console.log(errors)
                     for(var i=0;i<errors.length;i++){
                         $('.k-error-msg').html($('.k-error-msg').text() + '<br>' + errors[i])
                     }
@@ -673,7 +675,6 @@ function edit_child(dataIndex, masterType){
     ref_editting = true;
     for(let i=0;i<referenceDatas.length;i++){
         if(referenceDatas[i].id == dataIndex){
-            console.log(referenceDatas[i])
             ref_edit_num = i
             updatedElement = referenceDatas[i]
             let row, grid, dataItem, viewModel, kendoDialog, key = 'edit'
@@ -736,7 +737,6 @@ function edit_child(dataIndex, masterType){
                     } else {
                         $('.k-error-msg').text('')
                         var errors = data.error.message
-                        console.log(errors)
                         for(var i=0;i<errors.length;i++){
                             $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
                         }
@@ -745,7 +745,6 @@ function edit_child(dataIndex, masterType){
                 error: function (data) {
                     $('.k-error-msg').text('')
                     var errors = data.responseJSON.error.message
-                    console.log(errors)
                     for(var i=0;i<errors.length;i++){
                         $('.k-error-msg').html($('.k-error-msg').text() + '<br>' + errors[i])
                     }
