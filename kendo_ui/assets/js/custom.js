@@ -232,6 +232,11 @@ function referenceTreeInit(){
                 },
             }
         },
+        sort: [
+            // sort by "category" in descending order and then by "name" in ascending order
+            { field: "OrderId", dir: "asc" },
+            { field: "id", dir: "asc" }
+        ],
         pageSize: 15
     });
     
@@ -297,6 +302,71 @@ function referenceTreeInit(){
         pageable: {
             pageSize: 15,
             pageSizes: true
+        },
+        drop: function(e) {
+            console.log("drop", e);
+            if((e.position == 'over') || (e.source.parentid != e.destination.parentid)) {
+                e.preventDefault();
+            } else {
+                $('#loader-wrap').removeClass('hide')
+                var source_data = {
+                    "Id":e.source.Id,
+                    "Type": e.source.masterType,
+                    "OrderId": e.destination.OrderId
+                }
+                var destination_data = {
+                    "Id":e.destination.Id,
+                    "Type": e.destination.masterType,
+                    "OrderId": e.source.OrderId
+                }
+                getTokenRedirect(loginRequest).then(response => {
+                    $.ajax({
+                        url: 'https://emrsapi.azurewebsites.net/api/referenceData/items',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            "Authorization": "Bearer " + response.accessToken
+                        },
+                        type: 'PATCH',
+                        data: JSON.stringify(source_data),
+                        cache:false,
+                        contentType: false,
+                        processData: false,
+                        success: function (data) {
+                            $.ajax({
+                                url: 'https://emrsapi.azurewebsites.net/api/referenceData/items',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    "Authorization": "Bearer " + response.accessToken
+                                },
+                                type: 'PATCH',
+                                data: JSON.stringify(destination_data),
+                                cache:false,
+                                contentType: false,
+                                processData: false,
+                                success: function (data) {
+                                    console.log('swap success')
+                                    var first_order_id = e.source.OrderId;
+                                    e.source.set("OrderId", e.destination.OrderId);
+                                    e.destination.set("OrderId", first_order_id)
+                                    e.sender.refresh();
+                                    $('#loader-wrap').addClass('hide')
+                                },
+                                error: function (data) {
+                                    $('#loader-wrap').addClass('hide')
+                                    kendo.alert("Reordering is failed.");
+                                }
+                            })
+                        },
+                        error: function (data) {
+                            $('#loader-wrap').addClass('hide')
+                            kendo.alert("Reordering is failed.");
+                        }
+                    });
+                }).catch(error => {
+                    $('#loader-wrap').addClass('hide')
+                    kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+                })
+            }
         }
     });
 
