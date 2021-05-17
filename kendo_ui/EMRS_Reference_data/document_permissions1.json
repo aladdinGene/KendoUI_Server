@@ -1,0 +1,596 @@
+[
+    {
+        "id": "a3c2cf3b-b7a1-4a67-befd-08d915199b78",
+        "name": "EMRS Document Permission test rule 73631",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 207,
+                    "itemName": "SLOVENIA"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "0d6a2ac8-2b47-42d6-befc-08d915199b78",
+        "name": "EMRS Document Permission test rule 94529",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 226,
+                    "itemName": "UGANDA"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "a94267a9-35cc-4a33-6aa0-08d91383064f",
+        "name": "EMRS Document Permission test rule 04823",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 434,
+                    "itemName": "SOUTH SUDAN"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "0c9f4951-28b7-406d-c5b3-08d90fdaead4",
+        "name": "EMRS Document Permission test rule 18429",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 382,
+                    "itemName": "MAURITANIA"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "9893efc1-3b72-442d-c5b2-08d90fdaead4",
+        "name": "EMRS Document Permission test rule 19073",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 701,
+                    "itemName": "SAMOA"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "1af163d7-6d3e-48ad-c5b1-08d90fdaead4",
+        "name": "EMRS Document Permission test rule 76253",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 899,
+                    "itemName": "SLOVENIA"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "be794f93-2d4b-45c0-c5b0-08d90fdaead4",
+        "name": "EMRS Document Permission test rule 89887",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 139,
+                    "itemName": "MALDIVES"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "f61e1878-660d-482e-c5af-08d90fdaead4",
+        "name": "EMRS Document Permission test rule 97048",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 749,
+                    "itemName": "CHRISTMAS ISLAND"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "76c91c16-7cb6-483f-c5ae-08d90fdaead4",
+        "name": "EMRS Document Permission test rule 67770",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 86,
+                    "itemName": "GUINEA"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "8c18e65e-a774-4ae4-c5ad-08d90fdaead4",
+        "name": "EMRS Document Permission test fatima",
+        "grantType": 2,
+        "permissionDescription": "Desc",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "Country": [
+                {
+                    "id": 1,
+                    "itemName": "Switzerland"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "InternalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "18e312b7-eed3-4803-ee4a-08d90e2192b2",
+        "name": "EMRS Document Permission test rule 33832",
+        "grantType": 2,
+        "permissionDescription": "Descretion Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "country": [
+                {
+                    "id": 87,
+                    "itemName": "GUADELOUPE"
+                }
+            ],
+            "userMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "internalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "36c5c2b5-f8e4-4cac-ee49-08d90e2192b2",
+        "name": "EMRS Document Permission test rule 65",
+        "grantType": 2,
+        "permissionDescription": "Desc",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "Country": [
+                {
+                    "id": 58,
+                    "itemName": "CAYMAN ISLANDS"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "InternalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "e68b2f2f-5744-49ab-ee48-08d90e2192b2",
+        "name": "EMRS Document Permission test rule 150",
+        "grantType": 2,
+        "permissionDescription": "Desc Test",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "Country": [
+                {
+                    "id": 48,
+                    "itemName": "CAMEROON"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "InternalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "87d4cb42-3296-4ec3-ee47-08d90e2192b2",
+        "name": "EMRS Document Permission test rule 132",
+        "grantType": 2,
+        "permissionDescription": "Desc Test",
+        "status": true,
+        "ruleDefination": {
+            "documentMetadata": [],
+            "country": [],
+            "userMetadata": [],
+            "internalExternal": []
+        }
+    },
+    {
+        "id": "58e18969-94dd-4d5c-ee46-08d90e2192b2",
+        "name": "EMRS Document Permission test rule 12",
+        "grantType": 2,
+        "permissionDescription": "Desc Test",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "Country": [
+                {
+                    "id": 60,
+                    "itemName": "CZECH REPUBLIC"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "InternalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "dc125b0d-d76e-40c0-ee45-08d90e2192b2",
+        "name": "EMRS Document Permission test rule",
+        "grantType": 2,
+        "permissionDescription": "Desc Test",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "Country": [
+                {
+                    "id": 61,
+                    "itemName": "GERMANY"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "InternalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "8bf0912e-7bdb-4e1c-b847-08d908c38b8a",
+        "name": "EMRS Document Permission test rule 6",
+        "grantType": 2,
+        "permissionDescription": "Desc1",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 1,
+                    "itemName": "Country"
+                }
+            ],
+            "Country": [
+                {
+                    "id": 6,
+                    "itemName": "ANGOLA"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "InternalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ]
+        }
+    },
+    {
+        "id": "82d63367-4f1c-4c10-c58b-08d908c421af",
+        "name": "Give BRR and UNICEF access to non-confidential Influenza docs",
+        "grantType": 3,
+        "permissionDescription": "Give BRR and UNICEF access to non-confidential Influenza docs",
+        "status": true,
+        "ruleDefination": {
+            "DocumentMetadata": [
+                {
+                    "id": 16,
+                    "itemName": "ConfidentialityLevel"
+                },
+                {
+                    "id": 14,
+                    "itemName": "Aetiology"
+                }
+            ],
+            "Aetiology": [
+                {
+                    "id": 1795,
+                    "itemName": "L. monocytogenes"
+                }
+            ],
+            "ConfidentialityLevel": [
+                {
+                    "id": 2,
+                    "itemName": "ConfiLevel2"
+                }
+            ],
+            "UserMetadata": [
+                {
+                    "id": 25,
+                    "itemName": "UserOrgPath"
+                },
+                {
+                    "id": 15,
+                    "itemName": "Agency"
+                },
+                {
+                    "id": 22,
+                    "itemName": "InternalExternal"
+                }
+            ],
+            "InternalExternal": [
+                {
+                    "id": 2,
+                    "itemName": "External"
+                }
+            ],
+            "Agency": "UNICEF",
+            "UserOrgPath": "BRR"
+        }
+    }
+]

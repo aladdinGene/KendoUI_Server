@@ -305,17 +305,71 @@
             </script>
 
             <script type="text/x-kendo-template" id="doc-metadata-template">
-                #var documentMetaData = data.ruleDefination.DocumentMetadata[0].itemName#
-                #=data.ruleDefination[documentMetaData][0].itemName#
+                #var documentMetaData#
+                #if(data.ruleDefination.DocumentMetadata != undefined) {#
+                    #documentMetaData = data.ruleDefination.DocumentMetadata#
+                #} else {#
+                    #documentMetaData = data.ruleDefination.documentMetadata#
+                #}#
+                #for(var i=0;i<documentMetaData.length;i++) {#
+                    #var key = documentMetaData[i].itemName#
+                    #if(data.ruleDefination[key] != undefined) {#
+                        #if(data.ruleDefination[key][0].itemName != undefined) {#
+                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                #=data.ruleDefination[key][j].itemName#
+                            #}#
+                        #} else {#
+                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                #=data.ruleDefination[key]#
+                            #}#
+                        #}#
+                    #} else {#
+                        #key = key.charAt(0).toLowerCase() + key.slice(1)#
+                        #if(data.ruleDefination[key][0].itemName != undefined) {#
+                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                #=data.ruleDefination[key][j].itemName#
+                            #}#
+                        #} else {#
+                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                #=data.ruleDefination[key]#
+                            #}#
+                        #}#
+                    #}#
+                #}#
             </script>
 
-            <script type="text/x-kendo-template" id="doc-metadata-template">
-                #var documentMetaData = data.ruleDefination.UserMetadata[0].itemName#
-                #=data.ruleDefination[documentMetaData][0].id#
+            <script type="text/x-kendo-template" id="user-metadata-template">
+                #var userMetaData#
+                #if(data.ruleDefination.userMetadata != undefined) {#
+                    #userMetaData = data.ruleDefination.userMetadata#
+                #} else {#
+                    #userMetaData = data.ruleDefination.UserMetadata#
+                #}#
+                #for(var i=0;i<userMetaData.length;i++) {#
+                    #var key = userMetaData[i].itemName#
+                    #if(data.ruleDefination[key] != undefined) {#
+                        #if(data.ruleDefination[key][0].itemName != undefined) {#
+                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                #=data.ruleDefination[key][j].itemName#
+                            #}#
+                        #} else {#
+                            #=data.ruleDefination[key]#
+                        #}#
+                    #} else {#
+                        #key = key.charAt(0).toLowerCase() + key.slice(1)#
+                        #if(data.ruleDefination[key][0].itemName != undefined) {#
+                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                #=data.ruleDefination[key][j].itemName#
+                            #}#
+                        #} else {#
+                            #=data.ruleDefination[key]#
+                        #}#
+                    #}#
+                #}#
             </script>
 
             <script type="text/x-kendo-template" id="doc-access-template">
-                #var accesses = [{"text":"Read"},{"text":"Read/Write"},{"text":"FullAccess"},{"text":"Deny"}]#
+                #var accesses = [{"text":"Read"},{"text":"Read Write"},{"text":"Full Access"},{"text":"Deny"}]#
                 #=accesses[grantType - 1].text#
             </script>
 

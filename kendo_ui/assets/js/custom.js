@@ -18,8 +18,8 @@ var EMRSconfig={
     clientId: "cfc9f18c-9a43-4d6a-a556-f338be15619d",
     authority: "https://login.microsoftonline.com/171d96c1-7170-4561-a662-66c07e043e23",
     // redirectUri: "https://www.emdemos.com/EMRSAdmin",
-    redirectUri: "https://kendoui.azurewebsites.net",
-    // redirectUri: "http://localhost:44354",
+    // redirectUri: "https://kendoui.azurewebsites.net",
+    redirectUri: "http://localhost:44354",
     scopes: ["api://7b78a6e1-50a5-475d-b109-d7c18b63f513/EMRS_API"]
 };
 var loginRequest = {
@@ -764,6 +764,84 @@ function delete_if_condition(ele) {
     $(ele).parent().parent().remove()
 }
 
+
+function generateDocumentGrid(dPermission_data) {
+    $("#document-permission").kendoGrid({
+        dataSource: {
+            data: dPermission_data,
+            schema: {
+                model: {
+                    fields: {
+                    }
+                }
+            },
+            batch: true,
+            pageSize: 20
+        },
+        toolbar: kendo.template($("#doc-toolbar-template").html()),
+        height: 550,
+        scrollable: true,
+        sortable: true,
+        filterable: true,
+        pageable: {
+            refresh: true,
+            pageSizes: true,
+            buttonCount: 5
+        },
+        columns: [
+            { field: "name", title: "Name" },
+            { title: "Document Metadata", template: $("#doc-metadata-template").html() },
+            { title: "User Metadata", template: $("#user-metadata-template").html() },
+            { title: "Access", template: $("#doc-access-template").html() },
+            { title: "Status", template: $("#status-template").html() },
+            {
+                title: 'Actions',
+                template: function (dataItem) {
+                    let buttons = '<div>';
+                    buttons += '<button class="k-button k-button-icontext doc-app-edt"><span class="k-icon k-i-edit"></span>Edit</button>';
+                
+                    buttons += '<a role="button" class="k-button k-button-icontext k-grid-delete" href="#"><span class="k-icon k-i-close"></span>Delete</a>';
+                    
+                    buttons += '</div>';
+                    return buttons;
+                },
+                width: 200 
+            }
+        ],
+        dataBound: function() {
+            this.tbody.find(".statusClass").kendoSwitch({
+                messages: {
+                    checked: "ON",
+                    unchecked: "OFF"
+                }
+            });
+        }
+    });
+}
+
+var documentPermissionDatas, documentPermissionTabOpen = true;
+const fetch_body = "{permissionaccesstypes{id,displayname}" +
+        "mastertypes{id,parentid,name,displayname,metadataflag,documentmetadataflag}" +
+        "countrys{id,name,regionid}" +
+        "syndromes{id,name}" +
+        "sourceofinformations{id,name}" +
+        "regions{id,name}" +
+        "languages{id,name}" +
+        "hazards{id,name}" +
+        "documenttypes{id,name,documentcategoryid,documentroleid}" +
+        "documentcategorys{id,name}" +
+        "diseasecond{id,name,hazardid}" +
+        "aetiologys{id,name}" +
+        "agencys{id,agencyname}" +
+        "sensitiveinfos{id,name}" +
+        "roles{id,name}" +
+        "internalexternals{id,name}" +
+        "assignmentfunction{id,name}" +
+        "documentroles{id,name,assignmentfunctionid}" +
+        "occurrence{id,occurrencename}" +
+        "groups{groupid,groupname}" +
+        "locations{id,name}}"
+
 $(document).ready(function() {
 
     $("#tabstrip").kendoTabStrip({
@@ -774,6 +852,71 @@ $(document).ready(function() {
         }
     });
 
+    $('#tabstrip-tab-3').on('click', () => {
+        if(documentPermissionTabOpen) {
+            $('#loader-wrap').removeClass('hide')
+            getTokenRedirect(loginRequest).then(response => {
+                fetch(' https://emrsapi.azurewebsites.net/api/graphql', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + response.accessToken
+                  },
+                  body: JSON.stringify({query:fetch_body})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    documentPermissionDatas = data.data
+                    for(var i=0;i<documentPermissionDatas.mastertypes.length;i++) {
+                        if((documentPermissionDatas.mastertypes[i].documentmetadataflag == 1) && (documentPermissionDatas.mastertypes[i].parentid == 0)) {
+                            dDocumentMetaData.push(documentPermissionDatas.mastertypes[i])
+                        }
+                        if(documentPermissionDatas.mastertypes[i].metadataflag == 2) {
+                            dUserMetaData.push(documentPermissionDatas.mastertypes[i])
+                        }
+                    }
+                    for(var i=0;i<dDocumentMetaData.length;i++) {
+                        dUserMetaData[i].childIndices = new Array();
+                        for(var j=0;j<documentPermissionDatas.mastertypes.length;j++) {
+                            if((dDocumentMetaData[i].id == documentPermissionDatas.mastertypes[j].parentid) && (documentPermissionDatas.mastertypes[j].documentmetadataflag == 1)) {
+                                dUserMetaData[i].childIndices.push(j)
+                            }
+                        }
+                    }
+                }).catch((error) => {
+                    console.log(error)
+                });
+                
+            }).catch(error => {
+                kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            });
+
+
+
+            getTokenRedirect(loginRequest).then(response => {
+                fetch('https://emrsapi.azurewebsites.net/api/permissions/rules/' + 'document', {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + response.accessToken
+                  },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    dPermission_data = data.value
+                    generateDocumentGrid(dPermission_data)
+                    $('#loader-wrap').addClass('hide')
+                    documentPermissionTabOpen = false
+                })
+                .catch((error) => {
+                    console.log(error)
+                });
+                
+            }).catch(error => {
+                kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            });
+        }
+    })
     //===================================  TreeList(ReferenceData) block End.  ==============================================================================
 
     //=====================================  System Permission Block Start  =================================================================================
@@ -1068,13 +1211,13 @@ $(document).ready(function() {
     let dUserMetaData = new Array();
     let dPermissionType = new Array();
     
-    $.getJSON( "document_permissions_metadata/documentmetadata.json").then(function( data ) {
-        dDocumentMetaData = data.value
-    });
+    // $.getJSON( "document_permissions_metadata/documentmetadata.json").then(function( data ) {
+    //     dDocumentMetaData = data.value
+    // });
     
-    $.getJSON( "document_permissions_metadata/usermetadata.json").then(function( data ) {
-        dUserMetaData = data
-    });
+    // $.getJSON( "document_permissions_metadata/usermetadata.json").then(function( data ) {
+    //     dUserMetaData = data
+    // });
     
     $.getJSON( "document_permissions_metadata/permissiontype.json").then(function( data ) {
         dPermissionType = data.value
@@ -1082,78 +1225,6 @@ $(document).ready(function() {
 
 
 
-
-    let getDocumentPermissionData = new Promise(function(myResolve, myReject) {
-        
-
-        $.getJSON( "EMRS_Reference_data/document_permissions.json").then(function( data ) {
-
-            dPermission_data = data.value
-
-            myResolve(dPermission_data);
-        });
-    });
-
-    getDocumentPermissionData.then(function(sPermission_data){
-        $("#document-permission").kendoGrid({
-            dataSource: {
-                data: dPermission_data,
-                schema: {
-                    model: {
-                        fields: {
-                        }
-                    }
-                },
-                batch: true,
-                pageSize: 20
-            },
-            toolbar: kendo.template($("#doc-toolbar-template").html()),
-            height: 550,
-            scrollable: true,
-            sortable: true,
-            filterable: true,
-            pageable: {
-                refresh: true,
-                pageSizes: true,
-                buttonCount: 5
-            },
-            editable: {
-                mode: "popup",
-                template: $("#sys-permission-popup-template").html()
-            },
-            columns: [
-                { field: "name", title: "Name" },
-                { title: "Document Metadata", template: $("#doc-metadata-template").html() },
-                { title: "User Metadata", template: $("#doc-metadata-template").html() },
-                { title: "Access", template: $("#doc-access-template").html() },
-                { title: "Status", template: $("#status-template").html() },
-                {
-                    title: 'Actions',
-                    template: function (dataItem) {
-                        let buttons = '<div>';
-                        buttons += '<button class="k-button k-button-icontext doc-app-edt"><span class="k-icon k-i-edit"></span>Edit</button>';
-                    
-                        buttons += '<a role="button" class="k-button k-button-icontext k-grid-delete" href="#"><span class="k-icon k-i-close"></span>Delete</a>';
-                        
-                        buttons += '</div>';
-                        return buttons;
-                    },
-                    width: 200 
-                }
-            ],
-            dataBound: function() {
-                this.tbody.find(".statusClass").kendoSwitch({
-                    messages: {
-                        checked: "ON",
-                        unchecked: "OFF"
-                    }
-                });
-            }
-        });
-    },
-    function(error) {
-        // console.error('error')
-    })
 
     let doc_pop = $("#doc-pop").kendoWindow({
         dataSource: {
@@ -1170,23 +1241,8 @@ $(document).ready(function() {
         title: "Edit",
         visible: false,
         open: function(e) {
-            $("#active_status").kendoSwitch();
-            let doc_meta_data = $("#doc_meta_data").kendoMultiSelect({
-                autoClose: false,
-                dataTextField: "name",
-                dataValueField: "id",
-                dataSource: dDocumentMetaData,
-                select: select_doc_meta_data,
-                deselect: deselect_doc_meta_data
-            }).data("kendoMultiSelect");
-            let user_meta_data = $("#user_meta_data").kendoMultiSelect({
-                autoClose: false,
-                dataTextField: "name",
-                dataValueField: "id",
-                dataSource: dUserMetaData,
-                select: select_user_meta_data,
-                deselect: deselect_user_meta_data
-            }).data("kendoMultiSelect");
+            console.log(e)
+            
         }
     });
 
@@ -1205,6 +1261,89 @@ $(document).ready(function() {
             viewModel = kendo.observable(dPermission_data[row.index()]);
             kendoDialog = kendo.template($("#doc-permission-popup-template").html());
             doc_pop.data("kendoWindow").content(kendoDialog(viewModel)).center().open()
+            setTimeout(() => {
+
+                let data = dPermission_data[row.index()];
+
+                let doc_meta_wrap = $('#doc-metadata-wrap')
+
+                var documentMetaData
+                var docMetaDataDefalult = new Array;
+
+                if(data.ruleDefination.DocumentMetadata != undefined) {
+                    documentMetaData = data.ruleDefination.DocumentMetadata
+                } else {
+                    documentMetaData = data.ruleDefination.documentMetadata
+                }
+
+                for(var i=0;i<documentMetaData.length;i++){
+                    docMetaDataDefalult.push(documentMetaData[i].id)
+                }
+
+                $("#active_status").kendoSwitch();
+                let doc_meta_data = $("#doc_meta_data").kendoMultiSelect({
+                    autoClose: false,
+                    dataTextField: "displayname",
+                    dataValueField: "id",
+                    dataSource: dDocumentMetaData,
+                    select: select_doc_meta_data,
+                    deselect: deselect_doc_meta_data,
+                    value: docMetaDataDefalult
+                }).data("kendoMultiSelect");
+                let user_meta_data = $("#user_meta_data").kendoMultiSelect({
+                    autoClose: false,
+                    dataTextField: "displayname",
+                    dataValueField: "id",
+                    dataSource: dUserMetaData,
+                    select: select_user_meta_data,
+                    deselect: deselect_user_meta_data
+                }).data("kendoMultiSelect");
+                for(var i=0;i<documentMetaData.length;i++) {
+                    var key = documentMetaData[i].itemName
+                    if(data.ruleDefination[key] != undefined) {
+                        if(data.ruleDefination[key][0].itemName != undefined) {
+                            for(var j=0;j<data.ruleDefination[key].length;j++) {
+                                docmetaSelect(key)
+                                // data.ruleDefination[key][j].itemName
+                            }
+                        } else {
+                            for(var j=0;j<data.ruleDefination[key].length;j++) {
+                                docmetaSelect(key)
+                                // data.ruleDefination[key]
+                            }
+                        }
+                    } else {
+                        key = key.charAt(0).toLowerCase() + key.slice(1)
+                        if(data.ruleDefination[key][0].itemName != undefined) {
+                            for(var j=0;j<data.ruleDefination[key].length;j++) {
+                                docmetaSelect(key)
+                                // data.ruleDefination[key][j].itemName
+                            }
+                        } else {
+                            for(var j=0;j<data.ruleDefination[key].length;j++) {
+                                docmetaSelect(key)
+                                // data.ruleDefination[key]
+                            }
+                        }
+                    }
+                }
+                function docmetaSelect(text){
+                    var label_text = text
+                    label_text = label_text.replace(/([A-Z])/g, ' $1').trim()
+                    doc_meta_wrap.append($('<div />').attr('class', 'sys-pop-edit-label').attr("dataName", text)
+                            .append($('<label />').text(label_text)))
+                        .append($('<div />').attr('class', 'sys-pop-edit-field').attr("dataName", text)
+                            .append($('<select />').attr("dataName", text).attr("multiple", "multiple")))
+                    $("select[dataName="+text+"]").kendoMultiSelect({
+                        autoClose: false,
+                        dataTextField: "Name",
+                        dataValueField: "Id",
+                        dataSource: assignmentRoleData
+                    }).data("kendoMultiSelect");
+                }
+                
+
+            }, 500)
         }
         
         
