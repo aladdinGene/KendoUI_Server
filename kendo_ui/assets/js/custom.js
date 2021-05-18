@@ -18,8 +18,8 @@ var EMRSconfig={
     clientId: "cfc9f18c-9a43-4d6a-a556-f338be15619d",
     authority: "https://login.microsoftonline.com/171d96c1-7170-4561-a662-66c07e043e23",
     // redirectUri: "https://www.emdemos.com/EMRSAdmin",
-    // redirectUri: "https://kendoui.azurewebsites.net",
-    redirectUri: "http://localhost:44354",
+    redirectUri: "https://kendoui.azurewebsites.net",
+    // redirectUri: "http://localhost:44354",
     scopes: ["api://7b78a6e1-50a5-475d-b109-d7c18b63f513/EMRS_API"]
 };
 var loginRequest = {
@@ -868,7 +868,7 @@ $(document).ready(function() {
                 .then(data => {
                     documentPermissionDatas = data.data
                     for(var i=0;i<documentPermissionDatas.mastertypes.length;i++) {
-                        if((documentPermissionDatas.mastertypes[i].documentmetadataflag == 1) && (documentPermissionDatas.mastertypes[i].parentid == 0)) {
+                        if(documentPermissionDatas.mastertypes[i].documentmetadataflag == 1) {
                             dDocumentMetaData.push(documentPermissionDatas.mastertypes[i])
                         }
                         if(documentPermissionDatas.mastertypes[i].metadataflag == 2) {
@@ -876,10 +876,10 @@ $(document).ready(function() {
                         }
                     }
                     for(var i=0;i<dDocumentMetaData.length;i++) {
-                        dUserMetaData[i].childIndices = new Array();
+                        dDocumentMetaData[i].childIndices = new Array;
                         for(var j=0;j<documentPermissionDatas.mastertypes.length;j++) {
                             if((dDocumentMetaData[i].id == documentPermissionDatas.mastertypes[j].parentid) && (documentPermissionDatas.mastertypes[j].documentmetadataflag == 1)) {
-                                dUserMetaData[i].childIndices.push(j)
+                                dDocumentMetaData[i].childIndices.push(j)
                             }
                         }
                     }
@@ -1209,20 +1209,6 @@ $(document).ready(function() {
     let dPermission_data = new Array();
     let dDocumentMetaData = new Array();
     let dUserMetaData = new Array();
-    let dPermissionType = new Array();
-    
-    // $.getJSON( "document_permissions_metadata/documentmetadata.json").then(function( data ) {
-    //     dDocumentMetaData = data.value
-    // });
-    
-    // $.getJSON( "document_permissions_metadata/usermetadata.json").then(function( data ) {
-    //     dUserMetaData = data
-    // });
-    
-    $.getJSON( "document_permissions_metadata/permissiontype.json").then(function( data ) {
-        dPermissionType = data.value
-    });
-
 
 
 
@@ -1236,13 +1222,11 @@ $(document).ready(function() {
         actions: ["Minimize", "Close"],
         draggable: true,
         resizable: false,
-        width: "500px",
+        width: "600px",
         modal: true,
         title: "Edit",
         visible: false,
         open: function(e) {
-            console.log(e)
-            
         }
     });
 
@@ -1254,13 +1238,35 @@ $(document).ready(function() {
             key = 'add'
             kendoDialog = kendo.template($("#doc-permission-popup-template").html());
             doc_pop.data("kendoWindow").title('Add').content(kendoDialog(viewModel)).center().open()
+            setTimeout(() => {
+                $("input[type=checkbox][id^=doc_permission]").kendoSwitch({
+                    change: change_permission_type
+                });
+                $("#active_status").kendoSwitch();
+                let doc_meta_data = $("#doc_meta_data").kendoMultiSelect({
+                    autoClose: false,
+                    dataTextField: "displayname",
+                    dataValueField: "id",
+                    dataSource: dDocumentMetaData,
+                    select: select_doc_meta_data,
+                    deselect: deselect_doc_meta_data
+                }).data("kendoMultiSelect");
+                let user_meta_data = $("#user_meta_data").kendoMultiSelect({
+                    autoClose: false,
+                    dataTextField: "displayname",
+                    dataValueField: "id",
+                    dataSource: dUserMetaData,
+                    select: select_user_meta_data,
+                    deselect: deselect_user_meta_data
+                }).data("kendoMultiSelect");
+            }, 200)
         } else {
             row = $(this).closest("tr");
             grid = $("#document-permission").data("kendoGrid");
             dataItem = grid.dataItem(row);
             viewModel = kendo.observable(dPermission_data[row.index()]);
             kendoDialog = kendo.template($("#doc-permission-popup-template").html());
-            doc_pop.data("kendoWindow").content(kendoDialog(viewModel)).center().open()
+            doc_pop.data("kendoWindow").title('Edit').content(kendoDialog(viewModel)).center().open()
             setTimeout(() => {
 
                 let data = dPermission_data[row.index()];
@@ -1280,6 +1286,22 @@ $(document).ready(function() {
                     docMetaDataDefalult.push(documentMetaData[i].id)
                 }
 
+                var userMetaData
+                var userMetaDataDefalult = new Array;
+
+                if(data.ruleDefination.UserMetadata != undefined) {
+                    userMetaData = data.ruleDefination.UserMetadata
+                } else {
+                    userMetaData = data.ruleDefination.userMetadata
+                }
+
+                for(var i=0;i<userMetaData.length;i++){
+                    userMetaDataDefalult.push(userMetaData[i].id)
+                }
+
+                $("input[type=checkbox][id^=doc_permission]").kendoSwitch({
+                    change: change_permission_type
+                });
                 $("#active_status").kendoSwitch();
                 let doc_meta_data = $("#doc_meta_data").kendoMultiSelect({
                     autoClose: false,
@@ -1296,53 +1318,45 @@ $(document).ready(function() {
                     dataValueField: "id",
                     dataSource: dUserMetaData,
                     select: select_user_meta_data,
-                    deselect: deselect_user_meta_data
+                    deselect: deselect_user_meta_data,
+                    value: userMetaDataDefalult
                 }).data("kendoMultiSelect");
                 for(var i=0;i<documentMetaData.length;i++) {
                     var key = documentMetaData[i].itemName
-                    if(data.ruleDefination[key] != undefined) {
-                        if(data.ruleDefination[key][0].itemName != undefined) {
-                            for(var j=0;j<data.ruleDefination[key].length;j++) {
-                                docmetaSelect(key)
-                                // data.ruleDefination[key][j].itemName
-                            }
-                        } else {
-                            for(var j=0;j<data.ruleDefination[key].length;j++) {
-                                docmetaSelect(key)
-                                // data.ruleDefination[key]
-                            }
+                    var edit_default_value = new Array;
+                    var doc_id = documentMetaData[i].id
+                    var this_for_break = false
+                    var child_edit_default_value = new Array;
+                    if(this_for_break) {break;}
+                    for(var j=0;j<data.ruleDefination[key].length;j++) {
+                        edit_default_value.push(data.ruleDefination[key][j].id)
+                    }
+                    var temp_data = {}
+                    temp_data.dataItem = {}
+                    temp_data.dataItem.id = documentMetaData[i].id
+                    temp_data.dataItem.name = documentMetaData[i].itemName
+                    temp_data.dataItem.displayname = documentMetaData[i].itemName.replace(/([A-Z])/g, ' $1').trim()
+                    temp_data.dataItem.edit_default_value = edit_default_value
+                    select_doc_meta_data(temp_data)
+                }
+                for(var i=0;i<userMetaData.length;i++) {
+                    var key = userMetaData[i].itemName
+                    var edit_default_value = new Array;
+                    if(typeof(data.ruleDefination[key]) == 'Array') {
+                        for(var j=0;j<data.ruleDefination[key].length;j++) {
+                            edit_default_value.push(data.ruleDefination[key][j].id)
                         }
                     } else {
-                        key = key.charAt(0).toLowerCase() + key.slice(1)
-                        if(data.ruleDefination[key][0].itemName != undefined) {
-                            for(var j=0;j<data.ruleDefination[key].length;j++) {
-                                docmetaSelect(key)
-                                // data.ruleDefination[key][j].itemName
-                            }
-                        } else {
-                            for(var j=0;j<data.ruleDefination[key].length;j++) {
-                                docmetaSelect(key)
-                                // data.ruleDefination[key]
-                            }
-                        }
+                        edit_default_value = data.ruleDefination[key]
                     }
+                    var temp_data = {}
+                    temp_data.dataItem = {}
+                    temp_data.dataItem.id = userMetaData[i].id
+                    temp_data.dataItem.name = userMetaData[i].itemName
+                    temp_data.dataItem.displayname = userMetaData[i].itemName.replace(/([A-Z])/g, ' $1').trim()
+                    temp_data.dataItem.edit_default_value = edit_default_value
+                    select_user_meta_data(temp_data)
                 }
-                function docmetaSelect(text){
-                    var label_text = text
-                    label_text = label_text.replace(/([A-Z])/g, ' $1').trim()
-                    doc_meta_wrap.append($('<div />').attr('class', 'sys-pop-edit-label').attr("dataName", text)
-                            .append($('<label />').text(label_text)))
-                        .append($('<div />').attr('class', 'sys-pop-edit-field').attr("dataName", text)
-                            .append($('<select />').attr("dataName", text).attr("multiple", "multiple")))
-                    $("select[dataName="+text+"]").kendoMultiSelect({
-                        autoClose: false,
-                        dataTextField: "Name",
-                        dataValueField: "Id",
-                        dataSource: assignmentRoleData
-                    }).data("kendoMultiSelect");
-                }
-                
-
             }, 500)
         }
         
@@ -1350,16 +1364,19 @@ $(document).ready(function() {
     
         $('.edit-doc-permission').on('click', function(e){
             let edited_doc_permission = {}
-            edited_doc_permission.name = $('#doc_name').val()
-            edited_doc_permission.id = '0'
-            edited_doc_permission.permissionDescription = $('#doc_description').val()
-            edited_doc_permission.grantType = $('input[name=doc_permission]:checked').val()
-            edited_doc_permission.status = $('#active_status').get(0).checked
-            edited_doc_permission.ruleDefination = {}
-            edited_doc_permission.ruleDefination.DocumentMetadata = new Array();
+            edited_doc_permission.type = "document"
+            if(key == 'edit') {
+                edited_doc_permission.Id = $('#doc-hidden-id').val()
+            }
+            edited_doc_permission.Name = $('#doc_name').val()
+            edited_doc_permission.PermissionDescription = $('#doc_description').val()
+            edited_doc_permission.GrantType = $('input[name=doc_permission]:checked').val()
+            edited_doc_permission.Status = $('#active_status').get(0).checked
+            edited_doc_permission.RuleDefination = {}
+            edited_doc_permission.RuleDefination.DocumentMetadata = new Array();
             let document_metadatas = $("#doc_meta_data").data("kendoMultiSelect").dataItems()
             for(let i=0;i<document_metadatas.length;i++){
-                edited_doc_permission.ruleDefination.DocumentMetadata.push({
+                edited_doc_permission.RuleDefination.DocumentMetadata.push({
                     "id": document_metadatas[i].id,
                     "itemName": document_metadatas[i].name
                 })
@@ -1371,19 +1388,19 @@ $(document).ready(function() {
                 let document_metadata_values = $(document_metadata_items[i]).data("kendoMultiSelect").dataItems()
                 let key = $(document_metadata_items[i]).attr('dataName')
 
-                edited_doc_permission.ruleDefination[key] = new Array();
+                edited_doc_permission.RuleDefination[key] = new Array();
                 for(let j=0;j<document_metadata_values.length;j++){
-                    edited_doc_permission.ruleDefination[key].push({
-                        "id": document_metadata_values[j].Id,
-                        "itemName": document_metadata_values[j].Name
+                    edited_doc_permission.RuleDefination[key].push({
+                        "id": document_metadata_values[j].id,
+                        "itemName": document_metadata_values[j].name
                     })
                 }
             }
 
-            edited_doc_permission.ruleDefination.UserMetadata = new Array();
+            edited_doc_permission.RuleDefination.UserMetadata = new Array();
             let user_metadatas = $("#user_meta_data").data("kendoMultiSelect").dataItems()
             for(let i=0;i<user_metadatas.length;i++){
-                edited_doc_permission.ruleDefination.UserMetadata.push({
+                edited_doc_permission.RuleDefination.UserMetadata.push({
                     "id": user_metadatas[i].id,
                     "itemName": user_metadatas[i].name
                 })
@@ -1395,26 +1412,97 @@ $(document).ready(function() {
                 let document_metadata_values = $(document_metadata_items[i]).data("kendoMultiSelect").dataItems()
                 let key = $(document_metadata_items[i]).attr('dataName')
 
-                edited_doc_permission.ruleDefination[key] = new Array();
+                edited_doc_permission.RuleDefination[key] = new Array();
                 for(let j=0;j<document_metadata_values.length;j++){
-                    edited_doc_permission.ruleDefination[key].push({
-                        "id": document_metadata_values[j].Id,
-                        "itemName": document_metadata_values[j].Name
+                    edited_doc_permission.RuleDefination[key].push({
+                        "id": document_metadata_values[j].id,
+                        "itemName": document_metadata_values[j].name
                     })
+                }
+            }
+
+            document_metadata_items = $("#user-metadata-wrap input")
+
+            for(let i=0;i<document_metadata_items.length;i++){
+                if($(document_metadata_items[i]).attr('dataName') != undefined) {
+                    let document_metadata_values = $(document_metadata_items[i]).val()
+                    let key = $(document_metadata_items[i]).attr('dataName')
+
+                    edited_doc_permission.RuleDefination[key] = document_metadata_values
                 }
             }
 
 
             if(key == 'edit') {
-                dPermission_data[row.index()] = edited_doc_permission
+                getTokenRedirect(loginRequest).then(response => {
+                    fetch(' https://emrsapi.azurewebsites.net/api/permissions/rules', {
+                      method: 'PATCH',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + response.accessToken
+                      },
+                      body: JSON.stringify(edited_doc_permission)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.error){
+                            $('.k-error-msg').text('')
+                            var errors = data.error.message
+                            for(var i=0;i<errors.length;i++){
+                                $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+                            }
+                        } else {
+                            dPermission_data[row.index()].ruleDefination = edited_doc_permission.RuleDefination
+                            dPermission_data[row.index()].id = edited_doc_permission.Id
+                            dPermission_data[row.index()].grantType = edited_doc_permission.GrantType
+                            dPermission_data[row.index()].permissionDescription = edited_doc_permission.PermissionDescription
+                            dPermission_data[row.index()].status = edited_doc_permission.Status
+                            $("#document-permission").data("kendoGrid").dataSource.read();
+
+                            doc_pop.data("kendoWindow").close()
+                        }
+                    }).catch((error) => {
+                        console.log(error)
+                    });
+                    
+                }).catch(error => {
+                    kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+                });
             } else {
-                dPermission_data.unshift(edited_doc_permission)
+                getTokenRedirect(loginRequest).then(response => {
+                    fetch(' https://emrsapi.azurewebsites.net/api/permissions/rules', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + response.accessToken
+                      },
+                      body: JSON.stringify(edited_doc_permission)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.error){
+                            $('.k-error-msg').text('')
+                            var errors = data.error.message
+                            for(var i=0;i<errors.length;i++){
+                                $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+                            }
+                        } else {
+                            dPermission_data.unshift(data)
+                            $("#document-permission").data("kendoGrid").dataSource.read();
+
+                            doc_pop.data("kendoWindow").close()
+                        }
+                    }).catch((error) => {
+                        console.log(error)
+                    });
+                    
+                }).catch(error => {
+                    kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+                });
             }
             
 
-            $("#document-permission").data("kendoGrid").dataSource.read();
-
-            doc_pop.data("kendoWindow").close()
+            
 
         })
         $('.close-doc-permission').on('click', function(e){
@@ -1578,22 +1666,207 @@ function sPermission_change(e){
     permission_result_dropdown.setDataSource(dataSource);
 }
 
+var documetQueryMap = {
+    "Country": "countrys",
+    "Syndrome": "syndromes",
+    "SourceOfInformation": "sourceofinformations",
+    "Region": "regions",
+    "Language": "languages",
+    "Hazard": "hazards",
+    "EmrsRole": "",
+    "DocumentType": "documenttypes",
+    "DocumentCategory": "documentcategorys",
+    "DiseaseCond": "diseasecond",
+    "UnicefRegion": "",
+    "SouvereginCountry": "",
+    "Timezone": "",
+    "Aetiology": "aetiologys",
+    "Agency": "agencys",
+    "ConfidentialityLevel": "",
+    "FileFormat": "",
+    "SensitiveInfo": "sensitiveinfos",
+    "Roles": "roles",
+    "InternalExternal": "internalexternals",
+    "PermissionAccessType": "",
+    "UserOrgPath": "",
+    "UserPermissionGroup": "groups",
+    "UserBaseLocation": "locations",
+    "AssignedLocation": "locations",
+    "DeployedLocation": "locations",
+    "LocationType": "",
+    "AssignmentFunction": "assignmentfunction",
+    "AssignmentRole": "",
+    "DocumentRole": "documentroles",
+    "Occurrence": "occurrence",
+    "Admin1": "",
+    "Admin2": "",
+}
+
 function select_doc_meta_data(e){
     let dataItem = e.dataItem;
     let text = dataItem.name;
+    let label_text = dataItem.displayname;
     let value = dataItem.id;
 
+
+
     let doc_meta_wrap = $('#doc-metadata-wrap')
+    $("div[dataName='"+text+"']").remove()
     doc_meta_wrap.append($('<div />').attr('class', 'sys-pop-edit-label').attr("dataName", text)
-            .append($('<label />').text(text)))
+            .append($('<label />').text(label_text)))
         .append($('<div />').attr('class', 'sys-pop-edit-field').attr("dataName", text)
             .append($('<select />').attr("dataName", text).attr("multiple", "multiple")))
+
+    var dataTextField = "name", dataValueField = "id"
+
+    if(text == 'Occurrence') {
+        dataTextField = "occurrencename"
+    }
+
     $("select[dataName="+text+"]").kendoMultiSelect({
         autoClose: false,
-        dataTextField: "Name",
-        dataValueField: "Id",
-        dataSource: assignmentRoleData
+        dataTextField: dataTextField,
+        dataValueField: dataValueField,
+        dataSource: documentPermissionDatas[documetQueryMap[text]]
     }).data("kendoMultiSelect");
+
+    if((dataItem.parentid != 0) && (dataItem.edit_default_value == undefined)) {
+        $("select[dataName="+text+"]").data("kendoMultiSelect").setDataSource([]);
+    }
+
+    if(dataItem.edit_default_value != undefined) {
+        $("select[dataName="+text+"]").data("kendoMultiSelect").value(dataItem.edit_default_value);
+    }
+
+    var doc_meta_data_value = $("#doc_meta_data").data("kendoMultiSelect").value()
+
+
+    if(dataItem.childIndices != undefined) {
+        switch(text){
+            case 'Region':
+                $("select[dataName="+text+"]").data("kendoMultiSelect").bind("change", change_region_doc_meta_item);
+                break;
+            case 'Hazard':
+                $("select[dataName="+text+"]").data("kendoMultiSelect").bind("change", change_hazard_doc_meta_item);
+                break;
+            case 'DocumentCategory':
+                $("select[dataName="+text+"]").data("kendoMultiSelect").bind("change", change_document_doc_meta_item);
+                break;
+            case 'AssignmentFunction':
+                $("select[dataName="+text+"]").data("kendoMultiSelect").bind("change", change_assignment_doc_meta_item);
+                break;
+        }
+    }
+
+    if(dataItem.parentid != 0) {
+        for(var i=0;i<documentPermissionDatas.mastertypes.length;i++) {
+            if(documentPermissionDatas.mastertypes[i].id == dataItem.parentid) {
+                let parentItem = documentPermissionDatas.mastertypes[i];
+                text = parentItem.name;
+                label_text = parentItem.displayname;
+                value = parentItem.id;
+                doc_meta_data_value.push(value)
+                $("#doc_meta_data").data("kendoMultiSelect").value(doc_meta_data_value)
+
+                $("div[dataName='"+text+"']").remove()
+                doc_meta_wrap.append($('<div />').attr('class', 'sys-pop-edit-label').attr("dataName", text)
+                        .append($('<label />').text(label_text)))
+                    .append($('<div />').attr('class', 'sys-pop-edit-field').attr("dataName", text)
+                        .append($('<select />').attr("dataName", text).attr("multiple", "multiple")))
+                $("select[dataName="+text+"]").kendoMultiSelect({
+                    autoClose: false,
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    dataSource: documentPermissionDatas[documetQueryMap[text]]
+                }).data("kendoMultiSelect");
+                switch(text){
+                    case 'Region':
+                        $("select[dataName="+text+"]").data("kendoMultiSelect").bind("change", change_region_doc_meta_item);
+                        break;
+                    case 'Hazard':
+                        $("select[dataName="+text+"]").data("kendoMultiSelect").bind("change", change_hazard_doc_meta_item);
+                        break;
+                    case 'DocumentCategory':
+                        $("select[dataName="+text+"]").data("kendoMultiSelect").bind("change", change_document_doc_meta_item);
+                        break;
+                    case 'AssignmentFunction':
+                        $("select[dataName="+text+"]").data("kendoMultiSelect").bind("change", change_assignment_doc_meta_item);
+                        break;
+                }
+                break;
+            }
+        }
+    }
+
+    if(dataItem.childIndices != undefined) {
+        for(var i=0;i<dataItem.childIndices.length;i++) {
+            let childItem = documentPermissionDatas.mastertypes[dataItem.childIndices[i]];
+            text = childItem.name;
+            label_text = childItem.displayname;
+            value = childItem.id;
+            doc_meta_data_value.push(value)
+            $("#doc_meta_data").data("kendoMultiSelect").value(doc_meta_data_value)
+
+            $("div[dataName='"+text+"']").remove()
+            doc_meta_wrap.append($('<div />').attr('class', 'sys-pop-edit-label').attr("dataName", text)
+                    .append($('<label />').text(label_text)))
+                .append($('<div />').attr('class', 'sys-pop-edit-field').attr("dataName", text)
+                    .append($('<select />').attr("dataName", text).attr("multiple", "multiple")))
+            $("select[dataName="+text+"]").kendoMultiSelect({
+                autoClose: false,
+                dataTextField: "name",
+                dataValueField: "id"
+            }).data("kendoMultiSelect");
+        }
+    }
+}
+
+function change_region_doc_meta_item(e){
+    var selected_values = this.value()
+    var sub_items = new Array;
+    for(var i=0;i<selected_values.length;i++) {
+        for(var j=0;j<documentPermissionDatas.countrys.length;j++) {
+            if(selected_values[i] == documentPermissionDatas.countrys[j].regionid)
+            sub_items.push(documentPermissionDatas.countrys[j])
+        }
+    }
+    $('select[dataname=Country]').data("kendoMultiSelect").setDataSource(sub_items);
+}
+
+function change_hazard_doc_meta_item(e){
+    var selected_values = this.value()
+    var sub_items = new Array;
+    for(var i=0;i<selected_values.length;i++) {
+        for(var j=0;j<documentPermissionDatas.diseasecond.length;j++) {
+            if(selected_values[i] == documentPermissionDatas.diseasecond[j].hazardid)
+            sub_items.push(documentPermissionDatas.countrys[j])
+        }
+    }
+    $('select[dataname=DiseaseCond]').data("kendoMultiSelect").setDataSource(sub_items);
+}
+
+function change_document_doc_meta_item(e){
+    var selected_values = this.value()
+    var sub_items = new Array;
+    for(var i=0;i<selected_values.length;i++) {
+        for(var j=0;j<documentPermissionDatas.documenttypes.length;j++) {
+            if(selected_values[i] == documentPermissionDatas.documenttypes[j].documentcategoryid)
+            sub_items.push(documentPermissionDatas.countrys[j])
+        }
+    }
+    $('select[dataname=DocumentType]').data("kendoMultiSelect").setDataSource(sub_items);
+}
+
+function change_assignment_doc_meta_item(e){
+    var selected_values = this.value()
+    var sub_items = new Array;
+    for(var i=0;i<selected_values.length;i++) {
+        for(var j=0;j<documentPermissionDatas.documentroles.length;j++) {
+            if(selected_values[i] == documentPermissionDatas.documentroles[j].assignmentfunctionid)
+            sub_items.push(documentPermissionDatas.countrys[j])
+        }
+    }
+    $('select[dataname=DocumentRole]').data("kendoMultiSelect").setDataSource(sub_items);
 }
 
 function deselect_doc_meta_data(e){
@@ -1602,24 +1875,96 @@ function deselect_doc_meta_data(e){
     let value = dataItem.id;
 
     $("div[dataName='"+text+"']").remove()
+
+    if(dataItem.parentid != 0) {
+        var doc_meta_data_value = $("#doc_meta_data").data("kendoMultiSelect").value()
+        for(var i=0;i<doc_meta_data_value.length;i++) {
+            if(doc_meta_data_value[i] == value) {
+                doc_meta_data_value.splice(i, 1)
+                $("#doc_meta_data").data("kendoMultiSelect").value(doc_meta_data_value)
+                break;
+            }
+        }
+        for(var i=0;i<documentPermissionDatas.mastertypes.length;i++) {
+            if(documentPermissionDatas.mastertypes[i].id == dataItem.parentid) {
+                let parentItem = documentPermissionDatas.mastertypes[i];
+                text = parentItem.name;
+                label_text = parentItem.displayname;
+                value = parentItem.id;
+                doc_meta_data_value = $("#doc_meta_data").data("kendoMultiSelect").value()
+                for(var i=0;i<doc_meta_data_value.length;i++) {
+                    if(doc_meta_data_value[i] == value) {
+                        doc_meta_data_value.splice(i, 1)
+                        $("#doc_meta_data").data("kendoMultiSelect").value(doc_meta_data_value)
+                        break;
+                    }
+                }
+
+                $("div[dataName='"+text+"']").remove()
+                break;
+            }
+        }
+    }
+
+    if(dataItem.childIndices.length > 0) {
+        var doc_meta_data_value = $("#doc_meta_data").data("kendoMultiSelect").value()
+        for(var j=0;j<doc_meta_data_value.length;j++) {
+            if(doc_meta_data_value[j] == value) {
+                doc_meta_data_value.splice(j, 1)
+                $("#doc_meta_data").data("kendoMultiSelect").value(doc_meta_data_value)
+                break;
+            }
+        }
+        for(var i=0;i<dataItem.childIndices.length;i++) {
+            let childItem = documentPermissionDatas.mastertypes[dataItem.childIndices[i]];
+            text = childItem.name;
+            label_text = childItem.displayname;
+            value = childItem.id;
+            doc_meta_data_value = $("#doc_meta_data").data("kendoMultiSelect").value()
+            for(var j=0;j<doc_meta_data_value.length;j++) {
+                if(doc_meta_data_value[j] == value) {
+                    doc_meta_data_value.splice(j, 1)
+                    $("#doc_meta_data").data("kendoMultiSelect").value(doc_meta_data_value)
+                    break;
+                }
+            }
+            $("div[dataName='"+text+"']").remove()
+        }
+    }
 }
 
 function select_user_meta_data(e){
     let dataItem = e.dataItem;
     let text = dataItem.name;
+    let label_text = dataItem.displayname
     let value = dataItem.id;
 
     let doc_meta_wrap = $('#user-metadata-wrap')
     doc_meta_wrap.append($('<div />').attr('class', 'sys-pop-edit-label').attr("dataName", text)
-            .append($('<label />').text(text)))
+            .append($('<label />').text(label_text)))
         .append($('<div />').attr('class', 'sys-pop-edit-field').attr("dataName", text)
             .append($('<select />').attr("dataName", text).attr("multiple", "multiple")))
-    $("select[dataName='"+text+"']").kendoMultiSelect({
-        autoClose: false,
-        dataTextField: "Name",
-        dataValueField: "Id",
-        dataSource: assignmentRoleData
-    }).data("kendoMultiSelect");
+
+    var dataTextField = "name", dataValueField = "id"
+
+    if(text == 'UserPermissionGroup') {
+        dataTextField = "groupname"
+        dataValueField = "groupid"
+    }
+
+    if(documentPermissionDatas[documetQueryMap[text]] != undefined) {
+        $("select[dataName='"+text+"']").kendoMultiSelect({
+            autoClose: false,
+            dataTextField: dataTextField,
+            dataValueField: dataValueField,
+            dataSource: documentPermissionDatas[documetQueryMap[text]],
+            value: dataItem.edit_default_value
+        }).data("kendoMultiSelect");
+    } else {
+        $('div.sys-pop-edit-field[dataName='+text).empty();
+        $('div.sys-pop-edit-field[dataName='+text).append($('<input>').addClass('k-textbox').attr("dataName", text).attr('type', 'text').val(dataItem.edit_default_value))
+    }
+    
 }
 
 function deselect_user_meta_data(e){
@@ -1628,4 +1973,16 @@ function deselect_user_meta_data(e){
     let value = dataItem.id;
 
     $("div[dataName='"+text+"']").remove()
+}
+
+function change_permission_type(e){
+    $("#doc_permission_1").data("kendoSwitch").check(false)
+    $("#doc_permission_2").data("kendoSwitch").check(false)
+    $("#doc_permission_3").data("kendoSwitch").check(false)
+    $("#doc_permission_4").data("kendoSwitch").check(false)
+    $("#doc_permission_1").data("kendoSwitch").readonly(false)
+    $("#doc_permission_2").data("kendoSwitch").readonly(false)
+    $("#doc_permission_3").data("kendoSwitch").readonly(false)
+    $("#doc_permission_4").data("kendoSwitch").readonly(false)
+    this.readonly(true)
 }

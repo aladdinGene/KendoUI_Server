@@ -348,21 +348,25 @@
                 #for(var i=0;i<userMetaData.length;i++) {#
                     #var key = userMetaData[i].itemName#
                     #if(data.ruleDefination[key] != undefined) {#
-                        #if(data.ruleDefination[key][0].itemName != undefined) {#
-                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
-                                #=data.ruleDefination[key][j].itemName#
+                        #if(data.ruleDefination[key] != '') {#
+                            #if(data.ruleDefination[key][0].itemName != undefined) {#
+                                #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                    #=data.ruleDefination[key][j].itemName#
+                                #}#
+                            #} else {#
+                                #=data.ruleDefination[key]#
                             #}#
-                        #} else {#
-                            #=data.ruleDefination[key]#
                         #}#
                     #} else {#
                         #key = key.charAt(0).toLowerCase() + key.slice(1)#
-                        #if(data.ruleDefination[key][0].itemName != undefined) {#
-                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
-                                #=data.ruleDefination[key][j].itemName#
+                        #if(data.ruleDefination[key] != '') {#
+                            #if(data.ruleDefination[key][0].itemName != undefined) {#
+                                #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                    #=data.ruleDefination[key][j].itemName#
+                                #}#
+                            #} else {#
+                                #=data.ruleDefination[key]#
                             #}#
-                        #} else {#
-                            #=data.ruleDefination[key]#
                         #}#
                     #}#
                 #}#
@@ -383,54 +387,66 @@
                         <input type="text" id="doc_name" name="doc_name" title="doc_name" value="#if(!data.isNew){##=data.name##}#" class="k-textbox">
                     </div>
 
+                    #if(!data.isNew){#
+                        <input type="hidden" value="#=data.id#" id="doc-hidden-id" />
+                    #}#
+
                     <div class="sys-pop-edit-label">
                         <label for="doc_permission">Permission Type</label>
                     </div>
                     <div class="sys-pop-edit-field">
                         <form>
-                            #if(!data.isNew){#
-                                #if(data.grantType == 1) {#
-                                    <input type="radio" id="doc_permission_1" title="doc_permission" class="k-radio" name="doc_permission" value="1" checked>
+                            <div class="pull-left mb-10 width-50">
+                                #if(!data.isNew){#
+                                    #if(data.grantType == 1) {#
+                                        <input type="checkbox" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1" checked readonly>
+                                    #} else {#
+                                        <input type="checkbox" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1">
+                                    #}#
                                 #} else {#
-                                    <input type="radio" id="doc_permission_1" title="doc_permission" class="k-radio" name="doc_permission" value="1">
+                                    <input type="checkbox" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1">
                                 #}#
-                            #} else {#
-                                <input type="radio" id="doc_permission_1" title="doc_permission" class="k-radio" name="doc_permission" value="1">
-                            #}#
-                            <label for="doc_permission_1">Read</label>
+                                <label for="doc_permission_1">Read</label>
+                            </div>
 
-                            #if(!data.isNew){#
-                                #if(data.grantType == 2) {#
-                                    <input type="radio" id="doc_permission_2" title="doc_permission" class="k-radio" name="doc_permission" checked value="2">
+                            <div class="pull-left mb-10 width-50">
+                                #if(!data.isNew){#
+                                    #if(data.grantType == 2) {#
+                                        <input type="checkbox" id="doc_permission_2" title="doc_permission" name="doc_permission" checked value="2" readonly>
+                                    #} else {#
+                                        <input type="checkbox" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2">
+                                    #}#
                                 #} else {#
-                                    <input type="radio" id="doc_permission_2" title="doc_permission" class="k-radio" name="doc_permission" value="2">
+                                    <input type="checkbox" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2">
                                 #}#
-                            #} else {#
-                                <input type="radio" id="doc_permission_2" title="doc_permission" class="k-radio" name="doc_permission" value="2">
-                            #}#
-                            <label for="doc_permission_2">ReadWrite</label>
+                                <label for="doc_permission_2">ReadWrite</label>
+                            </div>
 
-                            #if(!data.isNew){#
-                                #if(data.grantType == 3) {#
-                                    <input type="radio" id="doc_permission_3" title="doc_permission" class="k-radio" name="doc_permission" checked value="3">
+                            <div class="pull-left width-50">
+                                #if(!data.isNew){#
+                                    #if(data.grantType == 3) {#
+                                        <input type="checkbox" id="doc_permission_3" title="doc_permission" name="doc_permission" checked value="3" readonly>
+                                    #} else {#
+                                        <input type="checkbox" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3">
+                                    #}#
                                 #} else {#
-                                    <input type="radio" id="doc_permission_3" title="doc_permission" class="k-radio" name="doc_permission" value="3">
+                                    <input type="checkbox" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3">
                                 #}#
-                            #} else {#
-                                <input type="radio" id="doc_permission_3" title="doc_permission" class="k-radio" name="doc_permission" value="3">
-                            #}#
-                            <label for="doc_permission_3">FullAccess</label>
+                                <label for="doc_permission_3">FullAccess</label>
+                            </div>
 
-                            #if(!data.isNew){#
-                                #if(data.grantType == 4) {#
-                                    <input type="radio" id="doc_permission_4" title="doc_permission" class="k-radio" name="doc_permission" checked value="4">
+                            <div class="pull-left width-50">
+                                #if(!data.isNew){#
+                                    #if(data.grantType == 4) {#
+                                        <input type="checkbox" id="doc_permission_4" title="doc_permission" name="doc_permission" checked value="4" readonly>
+                                    #} else {#
+                                        <input type="checkbox" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4">
+                                    #}#
                                 #} else {#
-                                    <input type="radio" id="doc_permission_4" title="doc_permission" class="k-radio" name="doc_permission" value="4">
+                                    <input type="checkbox" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4">
                                 #}#
-                            #} else {#
-                                <input type="radio" id="doc_permission_4" title="doc_permission" class="k-radio" name="doc_permission" value="4">
-                            #}#
-                            <label for="doc_permission_4">Deny</label>
+                                <label for="doc_permission_4">Deny</label>
+                            </div>
                         </form>
                     </div>
 
@@ -445,7 +461,7 @@
                         <label for="doc_description">Description</label>
                     </div>
                     <div data-container-for="data.permissionDescription" class="sys-pop-edit-field">
-                        <input type="text" id="doc_description" name="doc_description" title="doc_description" value="#if(!data.isNew){##=data.permissionDescription##}#" class="k-textbox">
+                        <textarea type="text" id="doc_description" name="doc_description" title="doc_description" value="#if(!data.isNew){##=data.permissionDescription##}#" class="k-textarea" rows="3">#if(!data.isNew){##=data.permissionDescription##}#</textarea>
                     </div>
 
                     <hr>
@@ -475,6 +491,7 @@
                 </div>
 
                 <div class="k-edit-buttons k-state-default">
+                    <div class="k-error-msg"></div>
                     #if(data.isNew){#
                         <button type="button" class="k-button k-button-icontext k-primary edit-doc-permission">
                             <span class="k-icon k-i-check"></span>Add
