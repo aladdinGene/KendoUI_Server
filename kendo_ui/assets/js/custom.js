@@ -819,8 +819,114 @@ function generateDocumentGrid(dPermission_data) {
     });
 }
 
-var documentPermissionDatas, documentPermissionTabOpen = true;
-const fetch_body = "{permissionaccesstypes{id,displayname}" +
+function generateSystemGrid(sPermission_data){
+    $("#system-permission").kendoGrid({
+        dataSource: {
+            data: sPermission_data,
+            schema: {
+                model: {
+                    fields: {
+                        name: { field: "name", nullable: false },
+                        description: { field: "description" },
+                        ruledefination: {defaultValue: {
+                            "ifCondition":[{
+                                "userAttribute":{"id":0,"name":""},
+                                "operator":{"id":0,"name":""},
+                                "value":{"value":""}
+                            }],
+                            "thenCondition":[{
+                                "permission":{"id":0,"name":""},
+                                "value":{"id":0,"name":""}
+                            }]
+                        }},
+                        application: {
+                            "id": 0,
+                            "name": ""
+                        }
+                    }
+                }
+            },
+            batch: true,
+            pageSize: 20
+        },
+        height: 550,
+        scrollable: true,
+        sortable: true,
+        filterable: true,
+        pageable: {
+            refresh: true,
+            pageSizes: true,
+            buttonCount: 5
+        },
+        toolbar: kendo.template($("#toolbar-template").html()),
+        columns: [
+            { field: "name", title: "Name" },
+            { title: "Condition(s)", template: $("#condition-template").html() },
+            { title: "Permission", template: $("#permission-template").html() },
+            { title: "Application", template: $("#application-template").html() },
+            { title: "Status", template: $("#status-template").html() },
+            {
+                title: 'Actions',
+                template: function (dataItem) {
+                    let buttons = '<div>';
+                    buttons += '<button class="k-button k-button-icontext sys-app-edt"><span class="k-icon k-i-edit"></span>Edit</button>';
+                
+                    buttons += '<a role="button" class="k-button k-button-icontext k-grid-delete" href="#"><span class="k-icon k-i-close"></span>Delete</a>';
+                    
+                    buttons += '</div>';
+                    return buttons;
+                },
+                width: 200 
+            }
+        ],
+        dataBound: function() {
+            this.tbody.find(".statusClass").kendoSwitch({
+                messages: {
+                    checked: "ON",
+                    unchecked: "OFF"
+                }
+            });
+        }
+    });
+}
+
+
+function add_sys_clause(){
+    let condition_wrap = $('#ifCondition-wrap')
+    condition_wrap.append($('<div />').attr('class', 'full-flex flex-center d-flex')
+        .append($('<input />').addClass('ifCondition'))
+        .append($('<input />').addClass('ifOperator'))
+        .append($('<input />').addClass('ifCountry').attr('disabled', 'disabled'))
+        .append($('<span />').addClass('text-right').append($('<i />').attr('class', 'k-icon k-i-trash if-delete').attr('onClick', 'delete_if_condition(this)')))
+    )
+    let last_flex = $('#ifCondition-wrap>.full-flex');
+    let ifCondition = $(last_flex[last_flex.length - 1]).find('.ifCondition')
+    let ifOperator = $(last_flex[last_flex.length - 1]).find('.ifOperator')
+    let ifCountry = $(last_flex[last_flex.length - 1]).find('.ifCountry')
+    ifCondition.kendoDropDownList({
+        optionLabel: "Select",
+        dataTextField: "name",
+        dataValueField: "id",
+        dataSource: sysPermissionDatas.userattributes,
+        change: ifCondition_change
+    })
+    ifOperator.kendoDropDownList({
+        optionLabel: "Select",
+        dataTextField: "name",
+        dataValueField: "id",
+        dataSource: sysPermissionDatas.operators
+    })
+    ifCountry.kendoDropDownList({
+        autoBind: false,
+        optionLabel: "Select",
+        dataTextField: "name",
+        dataValueField: "id"
+    })
+    $("#sys-pop").data("kendoWindow").center()
+}
+
+var documentPermissionDatas, documentPermissionTabOpen = true, sysPermissionDatas, sysPermissionTabOpen = true;
+const doc_fetch_body = "{permissionaccesstypes{id,displayname}" +
         "mastertypes{id,parentid,name,displayname,metadataflag,documentmetadataflag}" +
         "countrys{id,name,regionid}" +
         "syndromes{id,name}" +
@@ -830,7 +936,7 @@ const fetch_body = "{permissionaccesstypes{id,displayname}" +
         "hazards{id,name}" +
         "documenttypes{id,name,documentcategoryid,documentroleid}" +
         "documentcategorys{id,name}" +
-        "diseasecond{id,name,hazardid}" +
+        "diseaseconds{id,name,hazardid}" +
         "aetiologys{id,name}" +
         "agencys{id,agencyname}" +
         "sensitiveinfos{id,name}" +
@@ -838,9 +944,25 @@ const fetch_body = "{permissionaccesstypes{id,displayname}" +
         "internalexternals{id,name}" +
         "assignmentfunction{id,name}" +
         "documentroles{id,name,assignmentfunctionid}" +
-        "occurrence{id,occurrencename}" +
+        "occurrences{id,occurrencename}" +
         "groups{groupid,groupname}" +
         "locations{id,name}}"
+
+const sys_fetch_body = '{userpermissions(sortBy:{field:"name",direction:"asc"}){name,description,application{id, name},ruledefination}' +
+        'userattributes(sortBy:{field:"name",direction:"asc"}){id,name,displayname}' +
+        'userpermissionatrributes(sortBy:{field:"name",direction:"asc"}){id,name}' +
+        'operators(sortBy:{field:"name",direction:"asc"}){id,name}' +
+        'attributeoperatormappings{id,attributeid,operatorid,valuetype,value}' +
+        'internalexternals(sortBy:[{field:"orderid",direction:"asc"},{field:"name",direction:"asc"}]){id,name}' +
+        'countrys(sortBy:[{field:"orderid",direction:"asc"},{field:"name",direction:"asc"}]){id,name}' +
+        'regions(sortBy:[{field:"orderid",direction:"asc"},{field:"name",direction:"asc"}]){id,name}' +
+        'locationtypes(sortBy:[{field:"orderid",direction:"asc"},{field:"name",direction:"asc"}]){id,name}' +
+        'assignmentroles(sortBy:[{field:"orderid",direction:"asc"},{field:"name",direction:"asc"}]){id,name}' +
+        'assignmentfunctions(sortBy:[{field:"orderid",direction:"asc"},{field:"name",direction:"asc"}]){id,name}' +
+        'systempositions(sortBy:{field:"name",direction:"asc"}){id,name}' +
+        'systemroles(sortBy:{field:"name",direction:"asc"}){id,name}' +
+        'applications(sortBy:{field:"name",direction:"asc"}){id,name}' +
+        'permissionaccesstypes{id,name}}'
 
 $(document).ready(function() {
 
@@ -862,7 +984,7 @@ $(document).ready(function() {
                     'Content-Type': 'application/json',
                     "Authorization": "Bearer " + response.accessToken
                   },
-                  body: JSON.stringify({query:fetch_body})
+                  body: JSON.stringify({query:doc_fetch_body})
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -917,6 +1039,84 @@ $(document).ready(function() {
             });
         }
     })
+
+    $('#tabstrip-tab-2').on('click', () => {
+        if(sysPermissionTabOpen) {
+            $('#loader-wrap').removeClass('hide')
+            getTokenRedirect(loginRequest).then(response => {
+                fetch(' https://emrsapi.azurewebsites.net/api/graphql', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + response.accessToken
+                  },
+                  body: JSON.stringify({query:sys_fetch_body})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    sysPermissionDatas = data.data
+                    for(var i=0;i<sysPermissionDatas.userpermissions.length;i++) {
+                        sysPermissionDatas.userpermissions[i].ruledefination = JSON.parse(sysPermissionDatas.userpermissions[i].ruledefination)
+                        if(i == (sysPermissionDatas.userpermissions.length - 1)) {
+                            sPermission_data = sysPermissionDatas.userpermissions
+                            sCondition = sysPermissionDatas.userattributes
+                            sOperator = sysPermissionDatas.operators
+                            generateSystemGrid(sPermission_data)
+                            $('#loader-wrap').addClass('hide')
+                            sysPermissionTabOpen = false
+                        }
+                    }
+
+                    // for(var i=0;i<sysPermissionDatas.mastertypes.length;i++) {
+                    //     if(sysPermissionDatas.mastertypes[i].documentmetadataflag == 1) {
+                    //         dsysMetaData.push(sysPermissionDatas.mastertypes[i])
+                    //     }
+                    //     if(sysPermissionDatas.mastertypes[i].metadataflag == 2) {
+                    //         dUserMetaData.push(sysPermissionDatas.mastertypes[i])
+                    //     }
+                    // }
+                    // for(var i=0;i<dsysMetaData.length;i++) {
+                    //     dsysMetaData[i].childIndices = new Array;
+                    //     for(var j=0;j<sysPermissionDatas.mastertypes.length;j++) {
+                    //         if((dsysMetaData[i].id == sysPermissionDatas.mastertypes[j].parentid) && (sysPermissionDatas.mastertypes[j].sysmetadataflag == 1)) {
+                    //             dsysMetaData[i].childIndices.push(j)
+                    //         }
+                    //     }
+                    // }
+                }).catch((error) => {
+                    console.log(error)
+                });
+                
+            }).catch(error => {
+                kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            });
+
+
+
+            // getTokenRedirect(loginRequest).then(response => {
+            //     fetch('https://emrsapi.azurewebsites.net/api/permissions/rules/' + 'document', {
+            //       method: 'GET',
+            //       headers: {
+            //         'Content-Type': 'application/json',
+            //         "Authorization": "Bearer " + response.accessToken
+            //       },
+            //     })
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         sPermission_data = data.value
+            //         // generateDocumentGrid(sPermission_data)
+            //         $('#loader-wrap').addClass('hide')
+            //         sysPermissionTabOpen = false
+            //     })
+            //     .catch((error) => {
+            //         console.log(error)
+            //     });
+                
+            // }).catch(error => {
+            //     kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            // });
+        }
+    })
     //===================================  TreeList(ReferenceData) block End.  ==============================================================================
 
     //=====================================  System Permission Block Start  =================================================================================
@@ -925,112 +1125,32 @@ $(document).ready(function() {
     let sCondition = new Array();
     let sOperator = new Array();
     let sCountry = new Array();
+    
+    // $.getJSON( "user_permissions_reference_data/Country.json").then(function( data ) {
+    //     sCountry = data.value
+    //     condition_results_value = data.value
+    // });
+    
+    // $.getJSON( "user_permissions_reference_data/systemroles.json").then(function( data ) {
+    //     systemRolesValue = data.value
+    // });
+    
+    // $.getJSON( "user_permissions_reference_data/systempositions.json").then(function( data ) {
+    //     systemPositionsValue = data.value
+    // });
 
-    $.getJSON( "user_permissions_reference_data/conditions.json").then(function( data ) {
-        sCondition = data.value
-    });
-    
-    $.getJSON( "user_permissions_reference_data/operator.json").then(function( data ) {
-        sOperator = data.value
-    });
-    
-    $.getJSON( "user_permissions_reference_data/Country.json").then(function( data ) {
-        sCountry = data.value
-        condition_results_value = data.value
-    });
-    
-    $.getJSON( "user_permissions_reference_data/systemroles.json").then(function( data ) {
-        systemRolesValue = data.value
-    });
-    
-    $.getJSON( "user_permissions_reference_data/systempositions.json").then(function( data ) {
-        systemPositionsValue = data.value
-    });
-
-    let getSystemPermissionData = new Promise(function(myResolve, myReject) {
+    // let getSystemPermissionData = new Promise(function(myResolve, myReject) {
         
 
-        $.getJSON( "EMRS_Reference_data/system_permissions.json").then(function( data ) {
+    //     $.getJSON( "EMRS_Reference_data/system_permissions.json").then(function( data ) {
 
-            sPermission_data = data.value
+    //         sPermission_data = data.value
 
-            myResolve(sPermission_data);
-        });
-    });
+    //         myResolve(sPermission_data);
+    //     });
+    // });
 
-    getSystemPermissionData.then(function(sPermission_data){
-        $("#system-permission").kendoGrid({
-            dataSource: {
-                data: sPermission_data,
-                schema: {
-                    model: {
-                        fields: {
-                            name: { field: "name", nullable: false },
-                            description: { field: "description" },
-                            ruleDefination: {defaultValue: {
-                                "ifCondition":[{
-                                    "userAttribute":{"id":0,"name":""},
-                                    "operator":{"id":0,"name":""},
-                                    "value":{"value":""}
-                                }],
-                                "thenCondition":[{
-                                    "permission":{"id":0,"name":""},
-                                    "value":{"id":0,"name":""}
-                                }]
-                            }},
-                            application: {
-                                "id": 0,
-                                "name": ""
-                            }
-                        }
-                    }
-                },
-                batch: true,
-                pageSize: 20
-            },
-            height: 550,
-            scrollable: true,
-            sortable: true,
-            filterable: true,
-            pageable: {
-                refresh: true,
-                pageSizes: true,
-                buttonCount: 5
-            },
-            toolbar: kendo.template($("#toolbar-template").html()),
-            columns: [
-                { field: "name", title: "Name" },
-                { title: "Condition(s)", template: $("#condition-template").html() },
-                { title: "Permission", template: $("#permission-template").html() },
-                { title: "Application", template: $("#application-template").html() },
-                { title: "Status", template: $("#status-template").html() },
-                {
-                    title: 'Actions',
-                    template: function (dataItem) {
-                        let buttons = '<div>';
-                        buttons += '<button class="k-button k-button-icontext sys-app-edt"><span class="k-icon k-i-edit"></span>Edit</button>';
-                    
-                        buttons += '<a role="button" class="k-button k-button-icontext k-grid-delete" href="#"><span class="k-icon k-i-close"></span>Delete</a>';
-                        
-                        buttons += '</div>';
-                        return buttons;
-                    },
-                    width: 200 
-                }
-            ],
-            dataBound: function() {
-                this.tbody.find(".statusClass").kendoSwitch({
-                    messages: {
-                        checked: "ON",
-                        unchecked: "OFF"
-                    }
-                });
-            }
-        });
-    },
-    function(error) {
-        // console.error('error')
-    })
+    
 
     let sys_pop = $("#sys-pop").kendoWindow({
         dataSource: {
@@ -1047,74 +1167,7 @@ $(document).ready(function() {
         title: "Edit",
         visible: false,
         open: function(e) {
-            $("#status").kendoSwitch();
-            $(".ifCondition").kendoDropDownList({
-                optionLabel: "Select",
-                dataTextField: "DisplayName",
-                dataValueField: "Id",
-                dataSource: sCondition,
-                change: ifCondition_change
-            });
-            $(".ifOperator").kendoDropDownList({
-                optionLabel: "Select",
-                dataTextField: "name",
-                dataValueField: "operatorId",
-                dataSource: sOperator
-            });
-            condition_results = $(".ifCountry").kendoDropDownList({
-                autoBind: false,
-                optionLabel: "Select",
-                dataTextField: "Name",
-                dataValueField: "Id"
-            });
-
-            $('#add-if-condition').on('click', function(e){
-                let condition_wrap = $('#ifCondition-wrap')
-                condition_wrap.append($('<div />').attr('class', 'full-flex flex-center d-flex')
-                    .append($('<input />').addClass('ifCondition'))
-                    .append($('<input />').addClass('ifOperator'))
-                    .append($('<input />').addClass('ifCountry').attr('disabled', 'disabled'))
-                    .append($('<span />').addClass('text-right').append($('<i />').attr('class', 'k-icon k-i-trash if-delete').attr('onClick', 'delete_if_condition(this)')))
-                )
-                let last_flex = $('#ifCondition-wrap>.full-flex');
-                let ifCondition = $(last_flex[last_flex.length - 1]).find('.ifCondition')
-                let ifOperator = $(last_flex[last_flex.length - 1]).find('.ifOperator')
-                let ifCountry = $(last_flex[last_flex.length - 1]).find('.ifCountry')
-                ifCondition.kendoDropDownList({
-                    optionLabel: "Select",
-                    dataTextField: "DisplayName",
-                    dataValueField: "Name",
-                    dataSource: sCondition,
-                    change: ifCondition_change
-                })
-                ifOperator.kendoDropDownList({
-                    optionLabel: "Select",
-                    dataTextField: "name",
-                    dataValueField: "operatorId",
-                    dataSource: sOperator
-                })
-                ifCountry.kendoDropDownList({
-                    autoBind: false,
-                    optionLabel: "Select",
-                    dataTextField: "Name",
-                    dataValueField: "Id"
-                })
-                $("#sys-pop").data("kendoWindow").center()
-            })
-
-            sPermission = $("#sPermission").kendoDropDownList({
-                optionLabel: "Select",
-                dataTextField: "text",
-                dataValueField: "value",
-                dataSource: [{"value":1,"text":"Access"},{"value":2,"text":"Remove Position"},{"value":3,"text":"Update Role"},{"value":4,"text":"Add Position"}],
-                change: sPermission_change
-            });
-
-            sPermissionResult = $("#sPermissionResult").kendoDropDownList({
-                optionLabel: "Select",
-                dataTextField: "Name",
-                dataValueField: "Id"
-            });
+            
 
         }
     });
@@ -1127,13 +1180,160 @@ $(document).ready(function() {
             key = 'add'
             kendoDialog = kendo.template($("#sys-permission-popup-template").html());
             sys_pop.data("kendoWindow").title('Add').content(kendoDialog(viewModel)).center().open()
+            setTimeout(() => {
+                $("#status").kendoSwitch();
+                $(".ifCondition").kendoDropDownList({
+                    optionLabel: "Select",
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    dataSource: sCondition,
+                    change: ifCondition_change
+                });
+                $(".ifOperator").kendoDropDownList({
+                    optionLabel: "Select",
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    dataSource: sOperator
+                });
+                $(".ifCountry").addClass('k-textbox')
+
+                $('#add-if-condition').on('click', add_sys_clause)
+
+                sPermission = $("#sPermission").kendoDropDownList({
+                    optionLabel: "Select",
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    dataSource: sysPermissionDatas.userpermissionatrributes,
+                    change: sPermission_change
+                });
+
+                sPermissionResult = $("#sPermissionResult").kendoDropDownList({
+                    optionLabel: "Select",
+                    dataTextField: "name",
+                    dataValueField: "id"
+                });
+            }, 200)
         } else {
             row = $(this).closest("tr");
             grid = $("#system-permission").data("kendoGrid");
             dataItem = grid.dataItem(row);
-            viewModel = kendo.observable(sPermission_data[row.index()]);
+            var sys_pop_edit_dataSource = sysPermissionDatas.userpermissions[row.index()]
+            viewModel = kendo.observable(sys_pop_edit_dataSource);
             kendoDialog = kendo.template($("#sys-permission-popup-template").html());
             sys_pop.data("kendoWindow").content(kendoDialog(viewModel)).center().open()
+            setTimeout(() => {
+                $("#status").kendoSwitch();
+                $(".ifCondition").kendoDropDownList({
+                    optionLabel: "Select",
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    dataSource: sCondition,
+                    change: ifCondition_change,
+                    value: sys_pop_edit_dataSource.ruledefination.ifCondition[0].userAttribute.id
+                });
+                $(".ifOperator").kendoDropDownList({
+                    optionLabel: "Select",
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    dataSource: sOperator,
+                    value: sys_pop_edit_dataSource.ruledefination.ifCondition[0].operator.id
+                });
+                $(".ifCountry").get(0).disabled = false
+                if(sys_pop_edit_dataSource.ruledefination.ifCondition[0].value.id != undefined) {
+                    condition_results = $(".ifCountry").kendoDropDownList({
+                        autoBind: false,
+                        optionLabel: "Select",
+                        dataTextField: "name",
+                        dataValueField: "id"
+                    });
+                } else {
+                    $(".ifCountry").addClass('k-textbox').val(sys_pop_edit_dataSource.ruledefination.ifCondition[0].value.value)
+                }
+
+
+                for(var i=1;i<sys_pop_edit_dataSource.ruledefination.ifCondition.length;i++) {
+                    let condition_wrap = $('#ifCondition-wrap')
+                    condition_wrap.append($('<div />').attr('class', 'full-flex flex-center d-flex')
+                        .append($('<input />').addClass('ifCondition'))
+                        .append($('<input />').addClass('ifOperator'))
+                        .append($('<input />').addClass('ifCountry').attr('disabled', 'disabled'))
+                        .append($('<span />').addClass('text-right').append($('<i />').attr('class', 'k-icon k-i-trash if-delete').attr('onClick', 'delete_if_condition(this)')))
+                    )
+                    let last_flex = $('#ifCondition-wrap>.full-flex');
+                    let ifCondition = $(last_flex[last_flex.length - 1]).find('.ifCondition')
+                    let ifOperator = $(last_flex[last_flex.length - 1]).find('.ifOperator')
+                    let ifCountry = $(last_flex[last_flex.length - 1]).find('.ifCountry')
+                    ifCondition.kendoDropDownList({
+                        optionLabel: "Select",
+                        dataTextField: "name",
+                        dataValueField: "id",
+                        dataSource: sCondition,
+                        change: ifCondition_change,
+                        value: sys_pop_edit_dataSource.ruledefination.ifCondition[i].userAttribute.id
+                    });
+                    ifOperator.kendoDropDownList({
+                        optionLabel: "Select",
+                        dataTextField: "name",
+                        dataValueField: "id",
+                        dataSource: sOperator,
+                        value: sys_pop_edit_dataSource.ruledefination.ifCondition[i].operator.id
+                    });
+                    ifCountry.get(0).disabled = false
+                    if(sys_pop_edit_dataSource.ruledefination.ifCondition[i].value.id != undefined) {
+                        condition_results = ifCountry.kendoDropDownList({
+                            autoBind: false,
+                            optionLabel: "Select",
+                            dataTextField: "name",
+                            dataValueField: "id"
+                        });
+                    } else {
+                        ifCountry.addClass('k-textbox').val(sys_pop_edit_dataSource.ruledefination.ifCondition[i].value.value)
+                    }
+                }
+
+                $('#add-if-condition').on('click', add_sys_clause)
+
+
+                var sys_permission_edit_id = sys_pop_edit_dataSource.ruledefination.thenCondition[0].permission.id
+
+                var sPermission = $("#sPermission").kendoDropDownList({
+                    optionLabel: "Select",
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    dataSource: sysPermissionDatas.userpermissionatrributes,
+                    change: sPermission_change,
+                    value: sys_permission_edit_id
+                });
+
+                $("#sPermissionResult").kendoDropDownList({
+                    optionLabel: "Select",
+                    dataTextField: "name",
+                    dataValueField: "id"
+                });
+
+                var sPermissionResult = $("#sPermissionResult").data("kendoDropDownList")
+
+                var sPop_permission_data;
+                if(sys_permission_edit_id == 1) {
+                    sPermissionResult.enable(true)
+                    sPop_permission_data = sysPermissionDatas.permissionaccesstypes
+                } else if((sys_permission_edit_id == 4) || (sys_permission_edit_id == 5)) {
+                    sPermissionResult.enable(true)
+                    sPop_permission_data = sysPermissionDatas.systempositions
+                } else if(sys_permission_edit_id == 3) {
+                    sPermissionResult.enable(true)
+                    sPop_permission_data = sysPermissionDatas.systemroles
+                }
+
+                let dataSource = new kendo.data.DataSource({data: sPop_permission_data});
+                sPermissionResult.setDataSource(dataSource);
+                sPermissionResult.value(sys_pop_edit_dataSource.ruledefination.thenCondition[0].value.id);
+                sPermissionResult.trigger("change");
+
+
+
+
+            }, 200)
         }
 
 
@@ -1149,8 +1349,8 @@ $(document).ready(function() {
                 edited_sys_permission.application = {"id": 2, "name": "EMS2"}
             }
             edited_sys_permission.status = $('#status').get(0).checked
-            edited_sys_permission.ruleDefination = {}
-            edited_sys_permission.ruleDefination.ifCondition = new Array()
+            edited_sys_permission.ruledefination = {}
+            edited_sys_permission.ruledefination.ifCondition = new Array()
             let ifCondition_wrap_rows = $("#ifCondition-wrap>div")
             for(let i=0;i<ifCondition_wrap_rows.length;i++){
                 let ifCondition_val = {}
@@ -1166,10 +1366,10 @@ $(document).ready(function() {
                 ifCondition_val.value.id = $(ifCondition_wrap_rows[i]).find('input.ifCountry').data("kendoDropDownList").value()
                 ifCondition_val.value.name = $(ifCondition_wrap_rows[i]).find('input.ifCountry').data("kendoDropDownList").text()
             
-                edited_sys_permission.ruleDefination.ifCondition.push(ifCondition_val)
+                edited_sys_permission.ruledefination.ifCondition.push(ifCondition_val)
             }
 
-            edited_sys_permission.ruleDefination.thenCondition = new Array()
+            edited_sys_permission.ruledefination.thenCondition = new Array()
             let thenCondition_val = {}
             thenCondition_val.permission = {
                 "id":$("#sPermission").data("kendoDropDownList").value(),
@@ -1180,7 +1380,7 @@ $(document).ready(function() {
                 "name":$("#sPermissionResult").data("kendoDropDownList").text()
             }
 
-            edited_sys_permission.ruleDefination.thenCondition.push(thenCondition_val)
+            edited_sys_permission.ruledefination.thenCondition.push(thenCondition_val)
 
             if(key == 'edit') {
                 sPermission_data[row.index()] = edited_sys_permission
@@ -1239,9 +1439,6 @@ $(document).ready(function() {
             kendoDialog = kendo.template($("#doc-permission-popup-template").html());
             doc_pop.data("kendoWindow").title('Add').content(kendoDialog(viewModel)).center().open()
             setTimeout(() => {
-                $("input[type=checkbox][id^=doc_permission]").kendoSwitch({
-                    change: change_permission_type
-                });
                 $("#active_status").kendoSwitch();
                 let doc_meta_data = $("#doc_meta_data").kendoMultiSelect({
                     autoClose: false,
@@ -1269,17 +1466,18 @@ $(document).ready(function() {
             doc_pop.data("kendoWindow").title('Edit').content(kendoDialog(viewModel)).center().open()
             setTimeout(() => {
 
-                let data = dPermission_data[row.index()];
+                var page_num = grid.dataSource.pageSize() * (grid.dataSource.page() - 1) + row.index()
+                let data = dPermission_data[page_num];
 
                 let doc_meta_wrap = $('#doc-metadata-wrap')
 
                 var documentMetaData
                 var docMetaDataDefalult = new Array;
 
-                if(data.ruleDefination.DocumentMetadata != undefined) {
-                    documentMetaData = data.ruleDefination.DocumentMetadata
+                if(data.ruledefination.DocumentMetadata != undefined) {
+                    documentMetaData = data.ruledefination.DocumentMetadata
                 } else {
-                    documentMetaData = data.ruleDefination.documentMetadata
+                    documentMetaData = data.ruledefination.documentMetadata
                 }
 
                 for(var i=0;i<documentMetaData.length;i++){
@@ -1289,19 +1487,16 @@ $(document).ready(function() {
                 var userMetaData
                 var userMetaDataDefalult = new Array;
 
-                if(data.ruleDefination.UserMetadata != undefined) {
-                    userMetaData = data.ruleDefination.UserMetadata
+                if(data.ruledefination.UserMetadata != undefined) {
+                    userMetaData = data.ruledefination.UserMetadata
                 } else {
-                    userMetaData = data.ruleDefination.userMetadata
+                    userMetaData = data.ruledefination.userMetadata
                 }
 
                 for(var i=0;i<userMetaData.length;i++){
                     userMetaDataDefalult.push(userMetaData[i].id)
                 }
 
-                $("input[type=checkbox][id^=doc_permission]").kendoSwitch({
-                    change: change_permission_type
-                });
                 $("#active_status").kendoSwitch();
                 let doc_meta_data = $("#doc_meta_data").kendoMultiSelect({
                     autoClose: false,
@@ -1323,13 +1518,14 @@ $(document).ready(function() {
                 }).data("kendoMultiSelect");
                 for(var i=0;i<documentMetaData.length;i++) {
                     var key = documentMetaData[i].itemName
+                    if(data.ruledefination[key] == undefined) {
+                        key = key.charAt(0).toLowerCase() + key.slice(1)
+                    }
                     var edit_default_value = new Array;
                     var doc_id = documentMetaData[i].id
-                    var this_for_break = false
                     var child_edit_default_value = new Array;
-                    if(this_for_break) {break;}
-                    for(var j=0;j<data.ruleDefination[key].length;j++) {
-                        edit_default_value.push(data.ruleDefination[key][j].id)
+                    for(var j=0;j<data.ruledefination[key].length;j++) {
+                        edit_default_value.push(data.ruledefination[key][j].id)
                     }
                     var temp_data = {}
                     temp_data.dataItem = {}
@@ -1341,13 +1537,16 @@ $(document).ready(function() {
                 }
                 for(var i=0;i<userMetaData.length;i++) {
                     var key = userMetaData[i].itemName
+                    if(data.ruledefination[key] == undefined) {
+                        key = key.charAt(0).toLowerCase() + key.slice(1)
+                    }
                     var edit_default_value = new Array;
-                    if(typeof(data.ruleDefination[key]) == 'Array') {
-                        for(var j=0;j<data.ruleDefination[key].length;j++) {
-                            edit_default_value.push(data.ruleDefination[key][j].id)
+                    if(typeof(data.ruledefination[key]) == 'Array') {
+                        for(var j=0;j<data.ruledefination[key].length;j++) {
+                            edit_default_value.push(data.ruledefination[key][j].id)
                         }
                     } else {
-                        edit_default_value = data.ruleDefination[key]
+                        edit_default_value = data.ruledefination[key]
                     }
                     var temp_data = {}
                     temp_data.dataItem = {}
@@ -1372,11 +1571,11 @@ $(document).ready(function() {
             edited_doc_permission.PermissionDescription = $('#doc_description').val()
             edited_doc_permission.GrantType = $('input[name=doc_permission]:checked').val()
             edited_doc_permission.Status = $('#active_status').get(0).checked
-            edited_doc_permission.RuleDefination = {}
-            edited_doc_permission.RuleDefination.DocumentMetadata = new Array();
+            edited_doc_permission.ruledefination = {}
+            edited_doc_permission.ruledefination.DocumentMetadata = new Array();
             let document_metadatas = $("#doc_meta_data").data("kendoMultiSelect").dataItems()
             for(let i=0;i<document_metadatas.length;i++){
-                edited_doc_permission.RuleDefination.DocumentMetadata.push({
+                edited_doc_permission.ruledefination.DocumentMetadata.push({
                     "id": document_metadatas[i].id,
                     "itemName": document_metadatas[i].name
                 })
@@ -1388,19 +1587,19 @@ $(document).ready(function() {
                 let document_metadata_values = $(document_metadata_items[i]).data("kendoMultiSelect").dataItems()
                 let key = $(document_metadata_items[i]).attr('dataName')
 
-                edited_doc_permission.RuleDefination[key] = new Array();
+                edited_doc_permission.ruledefination[key] = new Array();
                 for(let j=0;j<document_metadata_values.length;j++){
-                    edited_doc_permission.RuleDefination[key].push({
+                    edited_doc_permission.ruledefination[key].push({
                         "id": document_metadata_values[j].id,
                         "itemName": document_metadata_values[j].name
                     })
                 }
             }
 
-            edited_doc_permission.RuleDefination.UserMetadata = new Array();
+            edited_doc_permission.ruledefination.UserMetadata = new Array();
             let user_metadatas = $("#user_meta_data").data("kendoMultiSelect").dataItems()
             for(let i=0;i<user_metadatas.length;i++){
-                edited_doc_permission.RuleDefination.UserMetadata.push({
+                edited_doc_permission.ruledefination.UserMetadata.push({
                     "id": user_metadatas[i].id,
                     "itemName": user_metadatas[i].name
                 })
@@ -1412,9 +1611,9 @@ $(document).ready(function() {
                 let document_metadata_values = $(document_metadata_items[i]).data("kendoMultiSelect").dataItems()
                 let key = $(document_metadata_items[i]).attr('dataName')
 
-                edited_doc_permission.RuleDefination[key] = new Array();
+                edited_doc_permission.ruledefination[key] = new Array();
                 for(let j=0;j<document_metadata_values.length;j++){
-                    edited_doc_permission.RuleDefination[key].push({
+                    edited_doc_permission.ruledefination[key].push({
                         "id": document_metadata_values[j].id,
                         "itemName": document_metadata_values[j].name
                     })
@@ -1428,7 +1627,7 @@ $(document).ready(function() {
                     let document_metadata_values = $(document_metadata_items[i]).val()
                     let key = $(document_metadata_items[i]).attr('dataName')
 
-                    edited_doc_permission.RuleDefination[key] = document_metadata_values
+                    edited_doc_permission.ruledefination[key] = document_metadata_values
                 }
             }
 
@@ -1452,7 +1651,7 @@ $(document).ready(function() {
                                 $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
                             }
                         } else {
-                            dPermission_data[row.index()].ruleDefination = edited_doc_permission.RuleDefination
+                            dPermission_data[row.index()].ruledefination = edited_doc_permission.ruledefination
                             dPermission_data[row.index()].id = edited_doc_permission.Id
                             dPermission_data[row.index()].grantType = edited_doc_permission.GrantType
                             dPermission_data[row.index()].permissionDescription = edited_doc_permission.PermissionDescription
@@ -1626,15 +1825,48 @@ $(document).ready(function() {
 
 
 function ifCondition_change(e){
-    condition_results = $(e.sender.element).parent().parent().find('input.ifCountry')
-    if(e.sender.value() == ''){
-        condition_results.data("kendoDropDownList").enable(false)
+    var first_select_id = this.value()
+    var elmnt = document.createElement("input");
+    elmnt.classList.add("ifCountry", "k-textbox");
+    elmnt.setAttribute('placeholder', 'Select');
+    var item = e.sender.element.get(0).parentElement.parentElement;
+    var replace_num = 2
+    if(item.childNodes.length > 4) {
+        replace_num = 5;
     } else {
-        condition_results.data("kendoDropDownList").enable(true)
+        replace_num = 2;
+    }
+    item.replaceChild(elmnt, item.childNodes[replace_num]);
+    condition_results = $(e.sender.element).parent().parent().find('input.ifCountry')
+    // $($(e.sender.element).parent().parent().get(0).childNodes[3]).replaceWith(function(n){
+    //   return '<input class="ifCountry" disabled />';
+    // });
+    if(e.sender.value() == ''){
+        // condition_results.data("kendoDropDownList").enable(false)
+    } else {
+        // condition_results.data("kendoDropDownList").enable(true)
+        for(var i=0;i<sysPermissionDatas.attributeoperatormappings.length;i++) {
+            if(sysPermissionDatas.attributeoperatormappings[i].attributeid == first_select_id) {
+                var valuetype = sysPermissionDatas.attributeoperatormappings[i].valuetype
+                console.log(first_select_id, valuetype)
+                if(valuetype != "freetext") {
+                    item.childNodes[replace_num].classList.remove("k-textbox")
+                    $(item.childNodes[replace_num]).kendoDropDownList({
+                        // autoBind: false,
+                        optionLabel: "Select",
+                        dataTextField: "name",
+                        dataValueField: "id"
+                    });
+                    var third_select_value = sysPermissionDatas.attributeoperatormappings[i].value
+                    // let dataSource = new kendo.data.DataSource({data: condition_results_value});
+                    let dropdownlist = condition_results.data("kendoDropDownList");
+                    dropdownlist.setDataSource(sysPermissionDatas[third_select_value.toLowerCase() + 's']);
+                }
+                break;
+            }
+        }
         // condition_results
-        let dataSource = new kendo.data.DataSource({data: condition_results_value});
-        let dropdownlist = condition_results.data("kendoDropDownList");
-        dropdownlist.setDataSource(dataSource);
+        
     }
 }
 
@@ -1644,22 +1876,13 @@ function sPermission_change(e){
         permission_result_dropdown.enable(false) 
     } else if(permission_value == 1) {
         permission_result_dropdown.enable(true)
-        sPermission_data = [{
-            "Id": 1,
-            "Name": "FullAccess"
-        }, {
-            "Id": 2,
-            "Name": "Deny"
-        }]
-    } else if(permission_value == 2) {
+        sPermission_data = sysPermissionDatas.permissionaccesstypes
+    } else if((permission_value == 4) || (permission_value == 5)) {
         permission_result_dropdown.enable(true)
-        sPermission_data = systemRolesValue
+        sPermission_data = sysPermissionDatas.systempositions
     } else if(permission_value == 3) {
         permission_result_dropdown.enable(true)
-        sPermission_data = systemPositionsValue
-    } else {
-        permission_result_dropdown.enable(true)
-        sPermission_data = systemPositionsValue
+        sPermission_data = sysPermissionDatas.systemroles
     }
 
     let dataSource = new kendo.data.DataSource({data: sPermission_data});
@@ -1676,7 +1899,7 @@ var documetQueryMap = {
     "EmrsRole": "",
     "DocumentType": "documenttypes",
     "DocumentCategory": "documentcategorys",
-    "DiseaseCond": "diseasecond",
+    "DiseaseCond": "diseaseconds",
     "UnicefRegion": "",
     "SouvereginCountry": "",
     "Timezone": "",
@@ -1697,7 +1920,7 @@ var documetQueryMap = {
     "AssignmentFunction": "assignmentfunction",
     "AssignmentRole": "",
     "DocumentRole": "documentroles",
-    "Occurrence": "occurrence",
+    "Occurrence": "occurrences",
     "Admin1": "",
     "Admin2": "",
 }
@@ -1707,7 +1930,6 @@ function select_doc_meta_data(e){
     let text = dataItem.name;
     let label_text = dataItem.displayname;
     let value = dataItem.id;
-
 
 
     let doc_meta_wrap = $('#doc-metadata-wrap')
@@ -1973,16 +2195,4 @@ function deselect_user_meta_data(e){
     let value = dataItem.id;
 
     $("div[dataName='"+text+"']").remove()
-}
-
-function change_permission_type(e){
-    $("#doc_permission_1").data("kendoSwitch").check(false)
-    $("#doc_permission_2").data("kendoSwitch").check(false)
-    $("#doc_permission_3").data("kendoSwitch").check(false)
-    $("#doc_permission_4").data("kendoSwitch").check(false)
-    $("#doc_permission_1").data("kendoSwitch").readonly(false)
-    $("#doc_permission_2").data("kendoSwitch").readonly(false)
-    $("#doc_permission_3").data("kendoSwitch").readonly(false)
-    $("#doc_permission_4").data("kendoSwitch").readonly(false)
-    this.readonly(true)
 }

@@ -268,3 +268,6 @@ span.k-datetimepicker{
 .k-edit-field .k-widget.k-switch, .sys-pop-edit-field .k-widget.k-switch{
     width: 65px;
 }
+.ifCountry.k-textbox{
+    margin-left: 10px;
+}

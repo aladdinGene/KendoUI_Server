@@ -170,14 +170,18 @@
             </script>
 
             <script type="text/x-kendo-template" id="condition-template">
-                #='If ' + data.ruleDefination.ifCondition[0].userAttribute.name#
-                #=' ' + data.ruleDefination.ifCondition[0].operator.name#
-                #=' ' + data.ruleDefination.ifCondition[0].value.name#
+                #for(var i=0;i<data.ruledefination.ifCondition.length;i++) {#
+                    #='If ' + data.ruledefination.ifCondition[i].userAttribute.name#
+                    #=' ' + data.ruledefination.ifCondition[i].operator.name#
+                    #=' ' + data.ruledefination.ifCondition[i].value.name#
+                #}#
             </script>
 
             <script type="text/x-kendo-template" id="permission-template">
-                #=data.ruleDefination.thenCondition[0].permission.name + ' -'#
-                #=data.ruleDefination.thenCondition[0].value.name#
+                #for(var i=0;i<data.ruledefination.thenCondition.length;i++) {#
+                    #=data.ruledefination.thenCondition[0].permission.name + ' -'#
+                    #=data.ruledefination.thenCondition[0].value.name#
+                #}#
             </script>
 
             <script type="text/x-kendo-template" id="status-template">
@@ -263,7 +267,7 @@
                     <hr>
 
                     <div class="sys-pop-edit-label">
-                        <label for="sPermission">The Permission</label>
+                        <label for="sPermission">Then Permission</label>
                     </div>
                     <div class="full-flex">
                         <input type="text" id="sPermission" />
@@ -396,57 +400,51 @@
                     </div>
                     <div class="sys-pop-edit-field">
                         <form>
-                            <div class="pull-left mb-10 width-50">
-                                #if(!data.isNew){#
-                                    #if(data.grantType == 1) {#
-                                        <input type="checkbox" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1" checked readonly>
-                                    #} else {#
-                                        <input type="checkbox" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1">
-                                    #}#
-                                #} else {#
-                                    <input type="checkbox" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1">
-                                #}#
-                                <label for="doc_permission_1">Read</label>
-                            </div>
 
-                            <div class="pull-left mb-10 width-50">
-                                #if(!data.isNew){#
-                                    #if(data.grantType == 2) {#
-                                        <input type="checkbox" id="doc_permission_2" title="doc_permission" name="doc_permission" checked value="2" readonly>
-                                    #} else {#
-                                        <input type="checkbox" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2">
-                                    #}#
+                            #if(!data.isNew){#
+                                #if(data.grantType == 1) {#
+                                    <input type="radio" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1" checked readonly>
                                 #} else {#
-                                    <input type="checkbox" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2">
+                                    <input type="radio" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1">
                                 #}#
-                                <label for="doc_permission_2">ReadWrite</label>
-                            </div>
+                            #} else {#
+                                <input type="radio" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1">
+                            #}#
+                            <label for="doc_permission_1">Read</label>
 
-                            <div class="pull-left width-50">
-                                #if(!data.isNew){#
-                                    #if(data.grantType == 3) {#
-                                        <input type="checkbox" id="doc_permission_3" title="doc_permission" name="doc_permission" checked value="3" readonly>
-                                    #} else {#
-                                        <input type="checkbox" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3">
-                                    #}#
+                            #if(!data.isNew){#
+                                #if(data.grantType == 2) {#
+                                    <input type="radio" id="doc_permission_2" title="doc_permission" name="doc_permission" checked value="2" readonly>
                                 #} else {#
-                                    <input type="checkbox" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3">
+                                    <input type="radio" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2">
                                 #}#
-                                <label for="doc_permission_3">FullAccess</label>
-                            </div>
+                            #} else {#
+                                <input type="radio" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2">
+                            #}#
+                            <label for="doc_permission_2">ReadWrite</label>
 
-                            <div class="pull-left width-50">
-                                #if(!data.isNew){#
-                                    #if(data.grantType == 4) {#
-                                        <input type="checkbox" id="doc_permission_4" title="doc_permission" name="doc_permission" checked value="4" readonly>
-                                    #} else {#
-                                        <input type="checkbox" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4">
-                                    #}#
+                            #if(!data.isNew){#
+                                #if(data.grantType == 3) {#
+                                    <input type="radio" id="doc_permission_3" title="doc_permission" name="doc_permission" checked value="3" readonly>
                                 #} else {#
-                                    <input type="checkbox" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4">
+                                    <input type="radio" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3">
                                 #}#
-                                <label for="doc_permission_4">Deny</label>
-                            </div>
+                            #} else {#
+                                <input type="radio" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3">
+                            #}#
+                            <label for="doc_permission_3">FullAccess</label>
+
+                            #if(!data.isNew){#
+                                #if(data.grantType == 4) {#
+                                    <input type="radio" id="doc_permission_4" title="doc_permission" name="doc_permission" checked value="4" readonly>
+                                #} else {#
+                                    <input type="radio" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4">
+                                #}#
+                            #} else {#
+                                <input type="radio" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4">
+                            #}#
+                            <label for="doc_permission_4">Deny</label>
+
                         </form>
                     </div>
 
