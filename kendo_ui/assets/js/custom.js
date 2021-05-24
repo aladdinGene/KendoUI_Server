@@ -766,6 +766,7 @@ function delete_if_condition(ele) {
 
 
 function generateDocumentGrid(dPermission_data) {
+    console.log(dPermission_data)
     $("#document-permission").kendoGrid({
         dataSource: {
             data: dPermission_data,
@@ -1474,10 +1475,10 @@ $(document).ready(function() {
                 var documentMetaData
                 var docMetaDataDefalult = new Array;
 
-                if(data.ruledefination.DocumentMetadata != undefined) {
-                    documentMetaData = data.ruledefination.DocumentMetadata
+                if(data.ruleDefination.DocumentMetadata != undefined) {
+                    documentMetaData = data.ruleDefination.DocumentMetadata
                 } else {
-                    documentMetaData = data.ruledefination.documentMetadata
+                    documentMetaData = data.ruleDefination.documentMetadata
                 }
 
                 for(var i=0;i<documentMetaData.length;i++){
@@ -1487,10 +1488,10 @@ $(document).ready(function() {
                 var userMetaData
                 var userMetaDataDefalult = new Array;
 
-                if(data.ruledefination.UserMetadata != undefined) {
-                    userMetaData = data.ruledefination.UserMetadata
+                if(data.ruleDefination.UserMetadata != undefined) {
+                    userMetaData = data.ruleDefination.UserMetadata
                 } else {
-                    userMetaData = data.ruledefination.userMetadata
+                    userMetaData = data.ruleDefination.userMetadata
                 }
 
                 for(var i=0;i<userMetaData.length;i++){
@@ -1518,14 +1519,14 @@ $(document).ready(function() {
                 }).data("kendoMultiSelect");
                 for(var i=0;i<documentMetaData.length;i++) {
                     var key = documentMetaData[i].itemName
-                    if(data.ruledefination[key] == undefined) {
+                    if(data.ruleDefination[key] == undefined) {
                         key = key.charAt(0).toLowerCase() + key.slice(1)
                     }
                     var edit_default_value = new Array;
                     var doc_id = documentMetaData[i].id
                     var child_edit_default_value = new Array;
-                    for(var j=0;j<data.ruledefination[key].length;j++) {
-                        edit_default_value.push(data.ruledefination[key][j].id)
+                    for(var j=0;j<data.ruleDefination[key].length;j++) {
+                        edit_default_value.push(data.ruleDefination[key][j].id)
                     }
                     var temp_data = {}
                     temp_data.dataItem = {}
@@ -1537,16 +1538,16 @@ $(document).ready(function() {
                 }
                 for(var i=0;i<userMetaData.length;i++) {
                     var key = userMetaData[i].itemName
-                    if(data.ruledefination[key] == undefined) {
+                    if(data.ruleDefination[key] == undefined) {
                         key = key.charAt(0).toLowerCase() + key.slice(1)
                     }
                     var edit_default_value = new Array;
-                    if(typeof(data.ruledefination[key]) == 'Array') {
-                        for(var j=0;j<data.ruledefination[key].length;j++) {
-                            edit_default_value.push(data.ruledefination[key][j].id)
+                    if(typeof(data.ruleDefination[key]) == 'Array') {
+                        for(var j=0;j<data.ruleDefination[key].length;j++) {
+                            edit_default_value.push(data.ruleDefination[key][j].id)
                         }
                     } else {
-                        edit_default_value = data.ruledefination[key]
+                        edit_default_value = data.ruleDefination[key]
                     }
                     var temp_data = {}
                     temp_data.dataItem = {}
@@ -1571,11 +1572,11 @@ $(document).ready(function() {
             edited_doc_permission.PermissionDescription = $('#doc_description').val()
             edited_doc_permission.GrantType = $('input[name=doc_permission]:checked').val()
             edited_doc_permission.Status = $('#active_status').get(0).checked
-            edited_doc_permission.ruledefination = {}
-            edited_doc_permission.ruledefination.DocumentMetadata = new Array();
+            edited_doc_permission.RuleDefination = {}
+            edited_doc_permission.RuleDefination.DocumentMetadata = new Array();
             let document_metadatas = $("#doc_meta_data").data("kendoMultiSelect").dataItems()
             for(let i=0;i<document_metadatas.length;i++){
-                edited_doc_permission.ruledefination.DocumentMetadata.push({
+                edited_doc_permission.RuleDefination.DocumentMetadata.push({
                     "id": document_metadatas[i].id,
                     "itemName": document_metadatas[i].name
                 })
@@ -1587,19 +1588,19 @@ $(document).ready(function() {
                 let document_metadata_values = $(document_metadata_items[i]).data("kendoMultiSelect").dataItems()
                 let key = $(document_metadata_items[i]).attr('dataName')
 
-                edited_doc_permission.ruledefination[key] = new Array();
+                edited_doc_permission.RuleDefination[key] = new Array();
                 for(let j=0;j<document_metadata_values.length;j++){
-                    edited_doc_permission.ruledefination[key].push({
+                    edited_doc_permission.RuleDefination[key].push({
                         "id": document_metadata_values[j].id,
                         "itemName": document_metadata_values[j].name
                     })
                 }
             }
 
-            edited_doc_permission.ruledefination.UserMetadata = new Array();
+            edited_doc_permission.RuleDefination.UserMetadata = new Array();
             let user_metadatas = $("#user_meta_data").data("kendoMultiSelect").dataItems()
             for(let i=0;i<user_metadatas.length;i++){
-                edited_doc_permission.ruledefination.UserMetadata.push({
+                edited_doc_permission.RuleDefination.UserMetadata.push({
                     "id": user_metadatas[i].id,
                     "itemName": user_metadatas[i].name
                 })
@@ -1611,9 +1612,9 @@ $(document).ready(function() {
                 let document_metadata_values = $(document_metadata_items[i]).data("kendoMultiSelect").dataItems()
                 let key = $(document_metadata_items[i]).attr('dataName')
 
-                edited_doc_permission.ruledefination[key] = new Array();
+                edited_doc_permission.RuleDefination[key] = new Array();
                 for(let j=0;j<document_metadata_values.length;j++){
-                    edited_doc_permission.ruledefination[key].push({
+                    edited_doc_permission.RuleDefination[key].push({
                         "id": document_metadata_values[j].id,
                         "itemName": document_metadata_values[j].name
                     })
@@ -1627,7 +1628,7 @@ $(document).ready(function() {
                     let document_metadata_values = $(document_metadata_items[i]).val()
                     let key = $(document_metadata_items[i]).attr('dataName')
 
-                    edited_doc_permission.ruledefination[key] = document_metadata_values
+                    edited_doc_permission.RuleDefination[key] = document_metadata_values
                 }
             }
 
@@ -1651,7 +1652,7 @@ $(document).ready(function() {
                                 $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
                             }
                         } else {
-                            dPermission_data[row.index()].ruledefination = edited_doc_permission.ruledefination
+                            dPermission_data[row.index()].RuleDefination = edited_doc_permission.RuleDefination
                             dPermission_data[row.index()].id = edited_doc_permission.Id
                             dPermission_data[row.index()].grantType = edited_doc_permission.GrantType
                             dPermission_data[row.index()].permissionDescription = edited_doc_permission.PermissionDescription
@@ -2059,9 +2060,9 @@ function change_hazard_doc_meta_item(e){
     var selected_values = this.value()
     var sub_items = new Array;
     for(var i=0;i<selected_values.length;i++) {
-        for(var j=0;j<documentPermissionDatas.diseasecond.length;j++) {
-            if(selected_values[i] == documentPermissionDatas.diseasecond[j].hazardid)
-            sub_items.push(documentPermissionDatas.countrys[j])
+        for(var j=0;j<documentPermissionDatas.diseaseconds.length;j++) {
+            if(selected_values[i] == documentPermissionDatas.diseaseconds[j].hazardid)
+            sub_items.push(documentPermissionDatas.diseaseconds[j])
         }
     }
     $('select[dataname=DiseaseCond]').data("kendoMultiSelect").setDataSource(sub_items);
@@ -2073,7 +2074,7 @@ function change_document_doc_meta_item(e){
     for(var i=0;i<selected_values.length;i++) {
         for(var j=0;j<documentPermissionDatas.documenttypes.length;j++) {
             if(selected_values[i] == documentPermissionDatas.documenttypes[j].documentcategoryid)
-            sub_items.push(documentPermissionDatas.countrys[j])
+            sub_items.push(documentPermissionDatas.documenttypes[j])
         }
     }
     $('select[dataname=DocumentType]').data("kendoMultiSelect").setDataSource(sub_items);
@@ -2085,7 +2086,7 @@ function change_assignment_doc_meta_item(e){
     for(var i=0;i<selected_values.length;i++) {
         for(var j=0;j<documentPermissionDatas.documentroles.length;j++) {
             if(selected_values[i] == documentPermissionDatas.documentroles[j].assignmentfunctionid)
-            sub_items.push(documentPermissionDatas.countrys[j])
+            sub_items.push(documentPermissionDatas.documentroles[j])
         }
     }
     $('select[dataname=DocumentRole]').data("kendoMultiSelect").setDataSource(sub_items);

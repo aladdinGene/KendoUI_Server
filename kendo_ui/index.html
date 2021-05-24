@@ -318,24 +318,28 @@
                 #for(var i=0;i<documentMetaData.length;i++) {#
                     #var key = documentMetaData[i].itemName#
                     #if(data.ruleDefination[key] != undefined) {#
-                        #if(data.ruleDefination[key][0].itemName != undefined) {#
-                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
-                                #=data.ruleDefination[key][j].itemName#
-                            #}#
-                        #} else {#
-                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
-                                #=data.ruleDefination[key]#
+                        #if(data.ruleDefination[key].length > 0) {#
+                            #if(data.ruleDefination[key][0].itemName != undefined) {#
+                                #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                    #=data.ruleDefination[key][j].itemName#
+                                #}#
+                            #} else {#
+                                #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                    #=data.ruleDefination[key]#
+                                #}#
                             #}#
                         #}#
                     #} else {#
                         #key = key.charAt(0).toLowerCase() + key.slice(1)#
-                        #if(data.ruleDefination[key][0].itemName != undefined) {#
-                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
-                                #=data.ruleDefination[key][j].itemName#
-                            #}#
-                        #} else {#
-                            #for(var j=0;j<data.ruleDefination[key].length;j++) {#
-                                #=data.ruleDefination[key]#
+                        #if(data.ruleDefination[key].length > 0) {#
+                            #if(data.ruleDefination[key][0].itemName != undefined) {#
+                                #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                    #=data.ruleDefination[key][j].itemName#
+                                #}#
+                            #} else {#
+                                #for(var j=0;j<data.ruleDefination[key].length;j++) {#
+                                    #=data.ruleDefination[key]#
+                                #}#
                             #}#
                         #}#
                     #}#
