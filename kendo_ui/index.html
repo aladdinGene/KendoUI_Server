@@ -357,7 +357,7 @@
                     #var key = userMetaData[i].itemName#
                     #if(data.ruleDefination[key] != undefined) {#
                         #if(data.ruleDefination[key] != '') {#
-                            #if(data.ruleDefination[key][0].itemName != undefined) {#
+                            #if(typeof(data.ruleDefination[key]) == 'object') {#
                                 #for(var j=0;j<data.ruleDefination[key].length;j++) {#
                                     #=data.ruleDefination[key][j].itemName#
                                 #}#
@@ -368,7 +368,7 @@
                     #} else {#
                         #key = key.charAt(0).toLowerCase() + key.slice(1)#
                         #if(data.ruleDefination[key] != '') {#
-                            #if(data.ruleDefination[key][0].itemName != undefined) {#
+                            #if(typeof(data.ruleDefination[key]) == 'object') {#
                                 #for(var j=0;j<data.ruleDefination[key].length;j++) {#
                                     #=data.ruleDefination[key][j].itemName#
                                 #}#

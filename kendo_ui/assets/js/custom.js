@@ -766,7 +766,6 @@ function delete_if_condition(ele) {
 
 
 function generateDocumentGrid(dPermission_data) {
-    console.log(dPermission_data)
     $("#document-permission").kendoGrid({
         dataSource: {
             data: dPermission_data,
@@ -926,6 +925,74 @@ function add_sys_clause(){
     $("#sys-pop").data("kendoWindow").center()
 }
 
+function get_sys_ifcondition_names(first_slt, operator, second_slt){
+    var res = {
+        "first_slt": '',
+        "operator": '',
+        "second_slt": ''
+    };
+    for(var i=0;i<sysPermissionDatas.userattributes.length;i++){
+        if(sysPermissionDatas.userattributes[i].id == first_slt) {
+            res.first_slt = sysPermissionDatas.userattributes[i].name
+            break;
+        }
+    }
+    for(var i=0; i<sysPermissionDatas.operators.length;i++){
+        if(sysPermissionDatas.operators[i].id == operator) {
+            res.operator = sysPermissionDatas.operators[i].name
+            break;
+        }
+    }
+    for(var i=0;i<sysPermissionDatas.attributeoperatormappings.length;i++){
+        if(first_slt == sysPermissionDatas.attributeoperatormappings[i].attributeid) {
+            if(sysPermissionDatas.attributeoperatormappings[i].valuetype == 'freetext') {
+                res.second_slt = second_slt;
+            } else {
+                var attr_key = sysPermissionDatas.attributeoperatormappings[i].value.toLowerCase() + 's';
+                if(sysPermissionDatas[attr_key] != undefined) {
+                    for(var j=0;j<sysPermissionDatas[attr_key].length;j++) {
+                        if(sysPermissionDatas[attr_key][j].id == second_slt) {
+                            res.second_slt = sysPermissionDatas[attr_key][j].name
+                        }
+                    }
+                } else {
+                    res.second_slt = ''
+                }
+            }
+            break;
+        }
+    }
+    return res;
+}
+
+function get_sys_thencondition_names(permission, value){
+    var res = {
+        "permission": "",
+        "value": ""
+    }
+    for(var i=0;i<sysPermissionDatas.userpermissionatrributes.length;i++){
+        if(permission == sysPermissionDatas.userpermissionatrributes[i].id){
+            res.permission = sysPermissionDatas.userpermissionatrributes[i].name;
+            break;
+        }
+    }
+    var sPermission_data;
+    if(permission == 1) {
+        sPermission_data = sysPermissionDatas.permissionaccesstypes
+    } else if((permission == 4) || (permission == 5)) {
+        sPermission_data = sysPermissionDatas.systempositions
+    } else if(permission == 3) {
+        sPermission_data = sysPermissionDatas.systemroles
+    }
+    for(var i=0;i<sPermission_data.length;i++){
+        if(sPermission_data[i].id == value) {
+            res.value = sPermission_data[i].name;
+            break;
+        }
+    }
+    return res;
+}
+
 var documentPermissionDatas, documentPermissionTabOpen = true, sysPermissionDatas, sysPermissionTabOpen = true;
 const doc_fetch_body = "{permissionaccesstypes{id,displayname}" +
         "mastertypes{id,parentid,name,displayname,metadataflag,documentmetadataflag}" +
@@ -1024,6 +1091,12 @@ $(document).ready(function() {
                     "Authorization": "Bearer " + response.accessToken
                   },
                 })
+                // fetch('document_permissions_20210525.json', {
+                //   method: 'GET',
+                //   headers: {
+                //     'Content-Type': 'application/json'
+                //   },
+                // })
                 .then(response => response.json())
                 .then(data => {
                     dPermission_data = data.value
@@ -1053,37 +1126,67 @@ $(document).ready(function() {
                   },
                   body: JSON.stringify({query:sys_fetch_body})
                 })
+                // fetch('user_permissions_20210525.json', {
+                //   method: 'GET',
+                //   headers: {
+                //     'Content-Type': 'application/json'
+                //   }
+                // })
                 .then(response => response.json())
                 .then(data => {
                     sysPermissionDatas = data.data
                     for(var i=0;i<sysPermissionDatas.userpermissions.length;i++) {
                         sysPermissionDatas.userpermissions[i].ruledefination = JSON.parse(sysPermissionDatas.userpermissions[i].ruledefination)
                         if(i == (sysPermissionDatas.userpermissions.length - 1)) {
-                            sPermission_data = sysPermissionDatas.userpermissions
+                            
                             sCondition = sysPermissionDatas.userattributes
                             sOperator = sysPermissionDatas.operators
-                            generateSystemGrid(sPermission_data)
+                            sysPermissionDatas.userpermissions.map((userpermission, index) => {
+                                if(userpermission.ruledefination.IfCondition != undefined) {
+                                    sysPermissionDatas.userpermissions[index].ruledefination.ifCondition = new Array();
+                                    userpermission.ruledefination.IfCondition.map((ifCondition) => {
+                                        var temp_ifCondition = {};
+                                        temp_ifCondition.userAttribute = {}
+                                        temp_ifCondition.userAttribute.id = ifCondition.UserAttribute
+                                        temp_ifCondition.userAttribute.name = ''
+                                        temp_ifCondition.operator = {}
+                                        temp_ifCondition.operator.id = ifCondition.Operator
+                                        temp_ifCondition.operator.name = ''
+                                        temp_ifCondition.value = {}
+                                        temp_ifCondition.value.id = ifCondition.Value
+                                        temp_ifCondition.value.name = ''
+                                        var temp_names = get_sys_ifcondition_names(ifCondition.UserAttribute, ifCondition.Operator, ifCondition.Value)
+                                        temp_ifCondition.userAttribute.name = temp_names.first_slt;
+                                        temp_ifCondition.operator.name = temp_names.operator;
+                                        temp_ifCondition.value.name = temp_names.second_slt;
+                                        temp_ifCondition.value.value = temp_names.second_slt;
+                                        sysPermissionDatas.userpermissions[index].ruledefination.ifCondition.push(temp_ifCondition)
+                                    })
+                                }
+                                if(userpermission.ruledefination.ThenCondition != undefined) {
+                                    sysPermissionDatas.userpermissions[index].ruledefination.thenCondition = new Array();
+                                    var temp_thenCondition = {};
+                                    temp_thenCondition.permission = {}
+                                    temp_thenCondition.permission.id = userpermission.ruledefination.ThenCondition.Permission
+                                    temp_thenCondition.permission.name = ''
+                                    temp_thenCondition.value = {}
+                                    temp_thenCondition.value.id = userpermission.ruledefination.ThenCondition.Value
+                                    temp_thenCondition.value.name = ''
+                                    var temp_names = get_sys_thencondition_names(temp_thenCondition.permission.id, temp_thenCondition.value.id)
+                                    temp_thenCondition.permission.name = temp_names.permission;
+                                    temp_thenCondition.value.name = temp_names.value;
+                                    sysPermissionDatas.userpermissions[index].ruledefination.thenCondition.push(temp_thenCondition)
+                                }
+                                if(index == (sysPermissionDatas.userpermissions.length - 1)) {
+                                    sPermission_data = sysPermissionDatas.userpermissions
+                                    generateSystemGrid(sPermission_data)
+                                }
+                            })
+                            
                             $('#loader-wrap').addClass('hide')
                             sysPermissionTabOpen = false
                         }
                     }
-
-                    // for(var i=0;i<sysPermissionDatas.mastertypes.length;i++) {
-                    //     if(sysPermissionDatas.mastertypes[i].documentmetadataflag == 1) {
-                    //         dsysMetaData.push(sysPermissionDatas.mastertypes[i])
-                    //     }
-                    //     if(sysPermissionDatas.mastertypes[i].metadataflag == 2) {
-                    //         dUserMetaData.push(sysPermissionDatas.mastertypes[i])
-                    //     }
-                    // }
-                    // for(var i=0;i<dsysMetaData.length;i++) {
-                    //     dsysMetaData[i].childIndices = new Array;
-                    //     for(var j=0;j<sysPermissionDatas.mastertypes.length;j++) {
-                    //         if((dsysMetaData[i].id == sysPermissionDatas.mastertypes[j].parentid) && (sysPermissionDatas.mastertypes[j].sysmetadataflag == 1)) {
-                    //             dsysMetaData[i].childIndices.push(j)
-                    //         }
-                    //     }
-                    // }
                 }).catch((error) => {
                     console.log(error)
                 });
@@ -1091,31 +1194,6 @@ $(document).ready(function() {
             }).catch(error => {
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
-
-
-
-            // getTokenRedirect(loginRequest).then(response => {
-            //     fetch('https://emrsapi.azurewebsites.net/api/permissions/rules/' + 'document', {
-            //       method: 'GET',
-            //       headers: {
-            //         'Content-Type': 'application/json',
-            //         "Authorization": "Bearer " + response.accessToken
-            //       },
-            //     })
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         sPermission_data = data.value
-            //         // generateDocumentGrid(sPermission_data)
-            //         $('#loader-wrap').addClass('hide')
-            //         sysPermissionTabOpen = false
-            //     })
-            //     .catch((error) => {
-            //         console.log(error)
-            //     });
-                
-            // }).catch(error => {
-            //     kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
-            // });
         }
     })
     //===================================  TreeList(ReferenceData) block End.  ==============================================================================
@@ -1126,30 +1204,6 @@ $(document).ready(function() {
     let sCondition = new Array();
     let sOperator = new Array();
     let sCountry = new Array();
-    
-    // $.getJSON( "user_permissions_reference_data/Country.json").then(function( data ) {
-    //     sCountry = data.value
-    //     condition_results_value = data.value
-    // });
-    
-    // $.getJSON( "user_permissions_reference_data/systemroles.json").then(function( data ) {
-    //     systemRolesValue = data.value
-    // });
-    
-    // $.getJSON( "user_permissions_reference_data/systempositions.json").then(function( data ) {
-    //     systemPositionsValue = data.value
-    // });
-
-    // let getSystemPermissionData = new Promise(function(myResolve, myReject) {
-        
-
-    //     $.getJSON( "EMRS_Reference_data/system_permissions.json").then(function( data ) {
-
-    //         sPermission_data = data.value
-
-    //         myResolve(sPermission_data);
-    //     });
-    // });
 
     
 
@@ -1218,20 +1272,32 @@ $(document).ready(function() {
             row = $(this).closest("tr");
             grid = $("#system-permission").data("kendoGrid");
             dataItem = grid.dataItem(row);
-            var sys_pop_edit_dataSource = sysPermissionDatas.userpermissions[row.index()]
+            var page_num = grid.dataSource.pageSize() * (grid.dataSource.page() - 1) + row.index()
+            var sys_pop_edit_dataSource = sysPermissionDatas.userpermissions[page_num]
             viewModel = kendo.observable(sys_pop_edit_dataSource);
             kendoDialog = kendo.template($("#sys-permission-popup-template").html());
             sys_pop.data("kendoWindow").content(kendoDialog(viewModel)).center().open()
             setTimeout(() => {
                 $("#status").kendoSwitch();
+                var first_slt_id = sys_pop_edit_dataSource.ruledefination.ifCondition[0].userAttribute.id;
                 $(".ifCondition").kendoDropDownList({
                     optionLabel: "Select",
                     dataTextField: "name",
                     dataValueField: "id",
                     dataSource: sCondition,
                     change: ifCondition_change,
-                    value: sys_pop_edit_dataSource.ruledefination.ifCondition[0].userAttribute.id
+                    value: first_slt_id
                 });
+                var second_slt_type = 'freetext', second_slt_key = '';
+                for(var i=0;i<sysPermissionDatas.attributeoperatormappings.length;i++){
+                    if(sysPermissionDatas.attributeoperatormappings[i].attributeid == first_slt_id) {
+                        second_slt_type = sysPermissionDatas.attributeoperatormappings[i].valuetype
+                        if(second_slt_type != 'freetext') {
+                            second_slt_key = sysPermissionDatas.attributeoperatormappings[i].value.toLowerCase() + 's'
+                        }
+                        break;
+                    }
+                }
                 $(".ifOperator").kendoDropDownList({
                     optionLabel: "Select",
                     dataTextField: "name",
@@ -1240,12 +1306,14 @@ $(document).ready(function() {
                     value: sys_pop_edit_dataSource.ruledefination.ifCondition[0].operator.id
                 });
                 $(".ifCountry").get(0).disabled = false
-                if(sys_pop_edit_dataSource.ruledefination.ifCondition[0].value.id != undefined) {
+                if(second_slt_type != 'freetext') {
                     condition_results = $(".ifCountry").kendoDropDownList({
                         autoBind: false,
                         optionLabel: "Select",
                         dataTextField: "name",
-                        dataValueField: "id"
+                        dataValueField: "id",
+                        dataSource: sysPermissionDatas[second_slt_key],
+                        value: sys_pop_edit_dataSource.ruledefination.ifCondition[0].value.id
                     });
                 } else {
                     $(".ifCountry").addClass('k-textbox').val(sys_pop_edit_dataSource.ruledefination.ifCondition[0].value.value)
@@ -1253,6 +1321,7 @@ $(document).ready(function() {
 
 
                 for(var i=1;i<sys_pop_edit_dataSource.ruledefination.ifCondition.length;i++) {
+                    first_slt_id = sys_pop_edit_dataSource.ruledefination.ifCondition[i].userAttribute.id;
                     let condition_wrap = $('#ifCondition-wrap')
                     condition_wrap.append($('<div />').attr('class', 'full-flex flex-center d-flex')
                         .append($('<input />').addClass('ifCondition'))
@@ -1272,6 +1341,16 @@ $(document).ready(function() {
                         change: ifCondition_change,
                         value: sys_pop_edit_dataSource.ruledefination.ifCondition[i].userAttribute.id
                     });
+                    second_slt_type = 'freetext', second_slt_key = '';
+                    for(var j=0;j<sysPermissionDatas.attributeoperatormappings.length;j++){
+                        if(sysPermissionDatas.attributeoperatormappings[j].attributeid == first_slt_id) {
+                            second_slt_type = sysPermissionDatas.attributeoperatormappings[j].valuetype
+                            if(second_slt_type != 'freetext') {
+                                second_slt_key = sysPermissionDatas.attributeoperatormappings[j].value.toLowerCase() + 's'
+                            }
+                            break;
+                        }
+                    }
                     ifOperator.kendoDropDownList({
                         optionLabel: "Select",
                         dataTextField: "name",
@@ -1280,12 +1359,14 @@ $(document).ready(function() {
                         value: sys_pop_edit_dataSource.ruledefination.ifCondition[i].operator.id
                     });
                     ifCountry.get(0).disabled = false
-                    if(sys_pop_edit_dataSource.ruledefination.ifCondition[i].value.id != undefined) {
+                    if(second_slt_type != 'freetext') {
                         condition_results = ifCountry.kendoDropDownList({
                             autoBind: false,
                             optionLabel: "Select",
                             dataTextField: "name",
-                            dataValueField: "id"
+                            dataValueField: "id",
+                            dataSource: sysPermissionDatas[second_slt_key],
+                            value: sys_pop_edit_dataSource.ruledefination.ifCondition[i].value.id
                         });
                     } else {
                         ifCountry.addClass('k-textbox').val(sys_pop_edit_dataSource.ruledefination.ifCondition[i].value.value)
