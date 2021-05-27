@@ -146,31 +146,39 @@ var fetchData = async () => {
                     })
                     .then(response => response.json())
                     .then(data => {
-                        present_index++
-                        var temp_data = data.value
-                        total_index += temp_data.length;
-                        for(var i=0;i<temp_data.length;i++){
-                            var temp_data_row = temp_data[i]
-                            temp_data_row.id = url.id * 10000 + temp_data_row.Id
-                            temp_data_row.masterType = url.id
-                            temp_data_row.masterName = url.displayname
-                            if(url.parentid == null) {
-                                temp_data_row.parentid = url.id
-                            } else {
-                                temp_data_row.parentid = url.parentid * 10000 + temp_data_row[url.parentName + 'Id']
+                        if(data.value) {
+                            present_index++
+                            var temp_data = data.value
+                            total_index += temp_data.length;
+                            console.log(present_index, total_index, urls.length)
+                            for(var i=0;i<temp_data.length;i++){
+                                var temp_data_row = temp_data[i]
+                                temp_data_row.id = url.id * 10000 + temp_data_row.Id
+                                temp_data_row.masterType = url.id
+                                temp_data_row.masterName = url.displayname
+                                if(url.parentid == null) {
+                                    temp_data_row.parentid = url.id
+                                } else {
+                                    temp_data_row.parentid = url.parentid * 10000 + temp_data_row[url.parentName + 'Id']
+                                }
+                                referenceDatas.push(temp_data_row)
+                                if((referenceDatas.length == total_index) && (present_index == urls.length)){
+                                    myResolve()
+                                }
                             }
-                            referenceDatas.push(temp_data_row)
+                        } else {
+                            present_index++
                             if((referenceDatas.length == total_index) && (present_index == urls.length)){
                                 myResolve()
                             }
                         }
-                        // reference_items[url] = temp_data
                     })
                     .catch((error) => {
                         console.log(error)
                     });
                     
                 }).catch(error => {
+                    $('#loader-wrap').addClass('hide')
                     kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
                 });
             })).then(async (json)=> {
@@ -196,6 +204,8 @@ function referenceTreeInit(){
             url_length--
         }
     }
+    var aaa=referenceDatas.length;
+    console.log(aaa)
     var dataSource = new kendo.data.TreeListDataSource({
         transport: {
             read: async function(e) {
@@ -461,6 +471,7 @@ function masterTypeChange(e){
             }
         })
     }).catch(error => {
+        $('#loader-wrap').addClass('hide')
         kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
     })
 }
@@ -660,6 +671,7 @@ function add_child(masterType) {
                 }
             });
         }).catch(error => {
+            $('#loader-wrap').addClass('hide')
             kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
         })
     })
@@ -751,6 +763,7 @@ function edit_child(dataIndex, masterType){
                 }
             });
         }).catch(error => {
+            $('#loader-wrap').addClass('hide')
             kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
         })
     })
@@ -1078,6 +1091,7 @@ $(document).ready(function() {
                 });
                 
             }).catch(error => {
+                $('#loader-wrap').addClass('hide')
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
 
@@ -1109,6 +1123,7 @@ $(document).ready(function() {
                 });
                 
             }).catch(error => {
+                $('#loader-wrap').addClass('hide')
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
         }
@@ -1192,6 +1207,7 @@ $(document).ready(function() {
                 });
                 
             }).catch(error => {
+                $('#loader-wrap').addClass('hide')
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
         }
