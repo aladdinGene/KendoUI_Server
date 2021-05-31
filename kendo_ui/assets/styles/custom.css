@@ -120,6 +120,8 @@
     background-color: #008dc9;
     font-size: 16px;
     padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
 }
 .createTemplate{
     height: 400px;

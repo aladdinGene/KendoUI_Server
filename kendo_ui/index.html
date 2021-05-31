@@ -14,6 +14,7 @@
     <script src="kendo-plugin/js/jquery.min.js"></script>
     <script src="kendo-plugin/js/jszip.min.js"></script>
     <script src="kendo-plugin/js/kendo.all.min.js"></script>
+    <script type="text/javascript" src="assets/js/EMRSconfig.js"></script>
     
     
     
@@ -23,7 +24,7 @@
     <div id="main-wrapper">
         <div id="tabstrip">
             <ul>
-                <li class="k-state-active">
+                <li class="k-state-active" id="reference-tab">
                     REFERENCE DATA
                 </li>
                 <li>
@@ -38,19 +39,19 @@
             </ul>
 
             <div>
-                <div class="blue-bar">Reference Database</div>
+                <div class="blue-bar"><span id="reference-blue-bar">Reference Database</span><span class="username-wrap"></span></div>
                 <div id="treelist"></div>
             </div>
             <div>
-                <div class="blue-bar">SYSTEM PERMISSION</div>
+                <div class="blue-bar"><span id="system-blue-bar">SYSTEM PERMISSION</span><span class="username-wrap"></span></div>
                 <div id="system-permission"></div>
             </div>
             <div>
-                <div class="blue-bar">DOCUMENT PERMISSION</div>
+                <div class="blue-bar"><span id="document-blue-bar">DOCUMENT PERMISSION</span><span class="username-wrap"></span></div>
                 <div id="document-permission"></div>
             </div>
             <div>
-                <div class="blue-bar">USER PERMISSION SIMULATION</div>
+                <div class="blue-bar"><span id="simulation-blue-bar">USER PERMISSION SIMULATION</span><span class="username-wrap"></span></div>
                 <div id="user-simulation">
                     <div class="d-flex mb-20">
                         <div class="d-flex">
@@ -118,18 +119,21 @@
                             <span class="k-icon k-i-search"></span>
                         </span>
                     </span>
-                    <button type="button" onClick="add_child(0)" class="k-button k-button-icontext k-grid-add"><span class="k-icon k-i-plus"></span>Add new record
-                    </button>
+                    #if(USER_PERMISSION.ReferenceData == 2){#
+                        <button type="button" onClick="add_child(0)" class="k-button k-button-icontext k-grid-add"><span class="k-icon k-i-plus"></span>Add new record
+                        </button>
+                    #}#
                 </div>
             </script>
 
             <script type="text/x-kendo-template" id="reference-popup-template">
+                #console.log(USER_PERMISSION.ReferenceData)#
                 <div class="createTemplate">
                     <div class="k-edit-label">
                         <label for="masterType">Master Type</label>
                     </div>
                     <div data-container-for="masterType" class="k-edit-field">
-                        <input id="masterType" 
+                        <input id="masterType" #if(USER_PERMISSION.ReferenceData != 2){#readonly#}#
                         />
                     </div>
                     <div id="parent-type-wrap"></div>
@@ -141,7 +145,7 @@
                         <button type="button" class="k-button k-button-icontext k-primary add-ref-data-btn">
                             <span class="k-icon k-i-check"></span>Add
                         </button>
-                    #} else {#
+                    #} else if(USER_PERMISSION.ReferenceData == 2){#
                         <button type="button" class="k-button k-button-icontext k-primary edit-ref-data-btn">
                             <span class="k-icon k-i-check"></span>Edit
                         </button>
@@ -162,10 +166,12 @@
                             <span class="k-icon k-i-search"></span>
                         </span>
                     </span>
+                    #if(USER_PERMISSION.SystemPermission == 2){#
                     <div>
                         <button type="button" class="k-button k-button-icontext sys-permission-add"><span class="k-icon k-i-plus"></span>Add new record</button>
                         <button type="button" class="k-button k-button-icontext"><span class="k-icon k-i-reload-sm k-i-refresh-sm k-i-recurrence-sm"></span>SYNCRONIZE</button>
                     </div>
+                    #}#
                 </div>
             </script>
 
@@ -186,9 +192,9 @@
 
             <script type="text/x-kendo-template" id="status-template">
                 #if(data.status) {#
-                    <input data-role="switch" type="checkbox" checked class="statusClass" disabled/> Active
+                    <input data-role="switch" type="checkbox" checked class="statusClass" disabled/>
                 #} else {#
-                    <input data-role="switch" type="checkbox" class="statusClass" disabled/> Inactive
+                    <input data-role="switch" type="checkbox" class="statusClass" disabled/>
                 #}#
             </script>
 
@@ -203,14 +209,14 @@
                         <label for="name">Rule Name</label>
                     </div>
                     <div data-container-for="name" class="sys-pop-edit-field">
-                        <input type="text" id="name" name="name" title="name" value="#if(!data.isNew){##=data.name##}#" class="k-textbox">
+                        <input type="text" id="name" name="name" title="name" value="#if(!data.isNew){##=data.name##}#" class="k-textbox" #if(USER_PERMISSION.SystemPermission != 2){#readonly#}#>
                     </div>
 
                     <div class="sys-pop-edit-label">
                         <label for="description">Description</label>
                     </div>
                     <div data-container-for="description" class="sys-pop-edit-field">
-                        <input type="text" id="description" name="description" title="description" class="k-textbox" value="#if(!data.isNew){##=data.description##}#">
+                        <input type="text" id="description" name="description" title="description" class="k-textbox" value="#if(!data.isNew){##=data.description##}#" #if(USER_PERMISSION.SystemPermission != 2){#readonly#}#>
                     </div>
 
                     <div class="sys-pop-edit-label">
@@ -220,9 +226,9 @@
                         <form>
                         #if(!data.isNew){#
                             #if(data.application.id == 1) {#
-                                <input type="radio" id="app_EMS" title="EMS" class="k-radio" name="application" value="1" checked>
+                                <input type="radio" id="app_EMS" title="EMS" class="k-radio" name="application" value="1" checked #if(USER_PERMISSION.SystemPermission != 2){#disabled#}#>
                             #} else {#
-                                <input type="radio" id="app_EMS" title="EMS" class="k-radio" name="application" value="1">
+                                <input type="radio" id="app_EMS" title="EMS" class="k-radio" name="application" value="1" #if(USER_PERMISSION.SystemPermission != 2){#disabled#}#>
                             #}#
                         #} else {#
                             <input type="radio" id="app_EMS" title="EMS" class="k-radio" name="application" value="1">
@@ -230,9 +236,9 @@
                         <label for="app_EMS">EMS</label>
                         #if(!data.isNew){#
                             #if(data.application.id == 2) {#
-                                <input type="radio" id="app_EMS2" title="EMS2" class="k-radio" name="application" checked value="2">
+                                <input type="radio" id="app_EMS2" title="EMS2" class="k-radio" name="application" checked value="2" #if(USER_PERMISSION.SystemPermission != 2){#disabled#}#>
                             #} else {#
-                                <input type="radio" id="app_EMS2" title="EMS2" class="k-radio" name="application" value="2">
+                                <input type="radio" id="app_EMS2" title="EMS2" class="k-radio" name="application" value="2" #if(USER_PERMISSION.SystemPermission != 2){#disabled#}#>
                             #}#
                         #} else {#
                             <input type="radio" id="app_EMS2" title="EMS2" class="k-radio" name="application" value="2">
@@ -245,7 +251,7 @@
                         <label for="status">Status</label>
                     </div>
                     <div data-container-for="data.status" class="sys-pop-edit-field">
-                        <input data-role="switch" type="checkbox" id="status" name="status" title="SyncToEms" data-bind="value:data.status, checked: data.status" data-messages="{ checked: 'YES', unchecked: 'NO' }" #if(data.status){#checked="checked"#}#/>
+                        <input data-role="switch" type="checkbox" id="status" name="status" title="SyncToEms" data-bind="value:data.status, checked: data.status" data-messages="{ checked: 'YES', unchecked: 'NO' }" #if(data.status){#checked="checked"#}# #if(USER_PERMISSION.SystemPermission != 2){#readonly#}# />
                     </div>
 
                     <hr>
@@ -255,14 +261,16 @@
                     </div>
                     <div id="ifCondition-wrap">
                         <div class="full-flex d-flex">
-                            <input class="ifCondition" />
-                            <input class="ifOperator" />
-                            <input class="ifCountry" disabled />
+                            <input class="ifCondition" #if(USER_PERMISSION.SystemPermission != 2){#readonly#}# />
+                            <input class="ifOperator" #if(USER_PERMISSION.SystemPermission != 2){#readonly#}# />
+                            <input class="ifCountry" #if(USER_PERMISSION.SystemPermission != 2){#readonly#}# disabled />
                         </div>
                     </div>
-                    <div class="full-flex text-right">
-                        <span id="add-if-condition"><i class="k-icon k-i-plus"></i> ADD NEW CLAUSE</span>
-                    </div>
+                    #if(USER_PERMISSION.SystemPermission == 2){#
+                        <div class="full-flex text-right">
+                            <span id="add-if-condition"><i class="k-icon k-i-plus"></i> ADD NEW CLAUSE</span>
+                        </div>
+                    #}#
 
                     <hr>
 
@@ -270,8 +278,8 @@
                         <label for="sPermission">Then Permission</label>
                     </div>
                     <div class="full-flex">
-                        <input type="text" id="sPermission" />
-                        <input type="text" id="sPermissionResult" disabled />
+                        <input type="text" id="sPermission" #if(USER_PERMISSION.SystemPermission != 2){#readonly#}#/>
+                        <input type="text" id="sPermissionResult" disabled #if(USER_PERMISSION.SystemPermission != 2){#readonly#}# />
                     </div>
 
                 </div>
@@ -281,7 +289,7 @@
                         <button type="button" class="k-button k-button-icontext k-primary edit-sys-permission">
                             <span class="k-icon k-i-check"></span>Add
                         </button>
-                    #} else {#
+                    #} else if(USER_PERMISSION.SystemPermission == 2){#
                         <button type="button" class="k-button k-button-icontext k-primary edit-sys-permission">
                             <span class="k-icon k-i-check"></span>Edit
                         </button>
@@ -302,9 +310,11 @@
                             <span class="k-icon k-i-search"></span>
                         </span>
                     </span>
-                    <div>
-                        <button type="button" class="k-button k-button-icontext doc-permission-add"><span class="k-icon k-i-plus"></span>Add new record</button>
-                    </div>
+                    #if(USER_PERMISSION.DocumentPermission == 2){#
+                        <div>
+                            <button type="button" class="k-button k-button-icontext doc-permission-add"><span class="k-icon k-i-plus"></span>Add new record</button>
+                        </div>
+                    #}#
                 </div>
             </script>
 
@@ -392,7 +402,7 @@
                         <label for="doc_name">Name</label>
                     </div>
                     <div data-container-for="doc_name" class="sys-pop-edit-field">
-                        <input type="text" id="doc_name" name="doc_name" title="doc_name" value="#if(!data.isNew){##=data.name##}#" class="k-textbox">
+                        <input type="text" id="doc_name" name="doc_name" title="doc_name" value="#if(!data.isNew){##=data.name##}#" class="k-textbox" #if(USER_PERMISSION.DocumentPermission != 2){#readonly#}#>
                     </div>
 
                     #if(!data.isNew){#
@@ -407,9 +417,9 @@
 
                             #if(!data.isNew){#
                                 #if(data.grantType == 1) {#
-                                    <input type="radio" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1" checked readonly>
+                                    <input type="radio" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1" checked readonly #if(USER_PERMISSION.DocumentPermission != 2){#disabled#}#>
                                 #} else {#
-                                    <input type="radio" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1">
+                                    <input type="radio" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1" #if(USER_PERMISSION.DocumentPermission != 2){#disabled#}#>
                                 #}#
                             #} else {#
                                 <input type="radio" id="doc_permission_1" title="doc_permission" name="doc_permission" value="1">
@@ -418,9 +428,9 @@
 
                             #if(!data.isNew){#
                                 #if(data.grantType == 2) {#
-                                    <input type="radio" id="doc_permission_2" title="doc_permission" name="doc_permission" checked value="2" readonly>
+                                    <input type="radio" id="doc_permission_2" title="doc_permission" name="doc_permission" checked value="2" readonly #if(USER_PERMISSION.DocumentPermission != 2){#disabled#}#>
                                 #} else {#
-                                    <input type="radio" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2">
+                                    <input type="radio" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2" #if(USER_PERMISSION.DocumentPermission != 2){#disabled#}#>
                                 #}#
                             #} else {#
                                 <input type="radio" id="doc_permission_2" title="doc_permission" name="doc_permission" value="2">
@@ -429,9 +439,9 @@
 
                             #if(!data.isNew){#
                                 #if(data.grantType == 3) {#
-                                    <input type="radio" id="doc_permission_3" title="doc_permission" name="doc_permission" checked value="3" readonly>
+                                    <input type="radio" id="doc_permission_3" title="doc_permission" name="doc_permission" checked value="3" readonly #if(USER_PERMISSION.DocumentPermission != 2){#disabled#}#>
                                 #} else {#
-                                    <input type="radio" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3">
+                                    <input type="radio" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3" #if(USER_PERMISSION.DocumentPermission != 2){#disabled#}#>
                                 #}#
                             #} else {#
                                 <input type="radio" id="doc_permission_3" title="doc_permission" name="doc_permission" value="3">
@@ -440,9 +450,9 @@
 
                             #if(!data.isNew){#
                                 #if(data.grantType == 4) {#
-                                    <input type="radio" id="doc_permission_4" title="doc_permission" name="doc_permission" checked value="4" readonly>
+                                    <input type="radio" id="doc_permission_4" title="doc_permission" name="doc_permission" checked value="4" readonly #if(USER_PERMISSION.DocumentPermission != 2){#disabled#}#>
                                 #} else {#
-                                    <input type="radio" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4">
+                                    <input type="radio" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4" #if(USER_PERMISSION.DocumentPermission != 2){#disabled#}#>
                                 #}#
                             #} else {#
                                 <input type="radio" id="doc_permission_4" title="doc_permission" name="doc_permission" value="4">
@@ -456,14 +466,14 @@
                         <label for="active_status">Active Status</label>
                     </div>
                     <div data-container-for="data.status" class="sys-pop-edit-field">
-                        <input data-role="switch" type="checkbox" id="active_status" name="status" title="status" data-bind="value:data.status, checked: data.status" data-messages="{ checked: 'YES', unchecked: 'NO' }" #if(data.status){#checked="checked"#}#/>
+                        <input data-role="switch" type="checkbox" id="active_status" name="status" title="status" data-bind="value:data.status, checked: data.status" data-messages="{ checked: 'YES', unchecked: 'NO' }" #if(data.status){#checked="checked"#}# #if(USER_PERMISSION.DocumentPermission != 2){#readonly#}#/>
                     </div>
 
                     <div class="sys-pop-edit-label">
                         <label for="doc_description">Description</label>
                     </div>
                     <div data-container-for="data.permissionDescription" class="sys-pop-edit-field">
-                        <textarea type="text" id="doc_description" name="doc_description" title="doc_description" value="#if(!data.isNew){##=data.permissionDescription##}#" class="k-textarea" rows="3">#if(!data.isNew){##=data.permissionDescription##}#</textarea>
+                        <textarea type="text" id="doc_description" name="doc_description" title="doc_description" value="#if(!data.isNew){##=data.permissionDescription##}#" class="k-textarea" rows="3" #if(USER_PERMISSION.DocumentPermission != 2){#readonly#}#>#if(!data.isNew){##=data.permissionDescription##}#</textarea>
                     </div>
 
                     <hr>
@@ -472,7 +482,7 @@
                         <label for="doc_meta_data">Document Metadata</label>
                     </div>
                     <div class="sys-pop-edit-field">
-                        <select id="doc_meta_data" multiple="multiple" data-placeholder="Select Document Metadata...">
+                        <select id="doc_meta_data" multiple="multiple" data-placeholder="Select Document Metadata..." #if(USER_PERMISSION.DocumentPermission != 2){#readonly#}#>
                         </select>
                     </div>
 
@@ -484,7 +494,7 @@
                         <label for="user_meta_data">User Metadata</label>
                     </div>
                     <div class="sys-pop-edit-field">
-                        <select id="user_meta_data" multiple="multiple" data-placeholder="Select User Metadata...">
+                        <select id="user_meta_data" multiple="multiple" data-placeholder="Select User Metadata..." #if(USER_PERMISSION.DocumentPermission != 2){#readonly#}#>
                         </select>
                     </div>
 
@@ -498,7 +508,7 @@
                         <button type="button" class="k-button k-button-icontext k-primary edit-doc-permission">
                             <span class="k-icon k-i-check"></span>Add
                         </button>
-                    #} else {#
+                    #} else if(USER_PERMISSION.DocumentPermission == 2){#
                         <button type="button" class="k-button k-button-icontext k-primary edit-doc-permission">
                             <span class="k-icon k-i-check"></span>Edit
                         </button>
@@ -507,10 +517,10 @@
                         <span class="k-icon k-i-cancel"></span>Cancel
                     </button>
                 </div>
-                #$("\#status").kendoSwitch()#
             </script>
 
         </div>
+        <div class="blue-bar" id="select-tab"><span>Select a tab</span><span class="username-wrap"></span></div>
     </div>
     <div id="sys-pop"></div>
     <div id="doc-pop"></div>
