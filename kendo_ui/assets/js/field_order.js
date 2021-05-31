@@ -1,4 +1,4 @@
-[
+var field_order = [
     {
         "fieldname": "Id",
         "text": "ID",

@@ -1,4 +1,4 @@
-{"data":[{
+var applied_permissions = {"data":[{
 "Application":"EMS",
 "Permission":"Access",
 "Value":"Yes",

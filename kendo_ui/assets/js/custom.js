@@ -6,8 +6,6 @@ var dataSourceMasterType = [
         { "text": "Hazard", "value": "Hazard" }
     ];
 
-var field_order = new Array();
-
 const USER_PERMISSION_MAP = {
         "Global Administrators": {
             "ReferenceData": 2,
@@ -205,9 +203,7 @@ function get_user_permission(){
                     "GroupMembership":2,
                     "UserPermissionSimulation":1
                 }
-                console.log(USER_PERMISSION)
             }
-            console.log(data)
         })
         .catch((error) => {
             $('#loader-wrap').addClass('hide')
@@ -552,13 +548,12 @@ function referenceTreeInit(){
 
 let ref_edit_data = '', ref_editting = false;
 
-$.getJSON( "assets/js/field_order.json").then(function( data ) {
-    field_order = data
-});
-
 function masterTypeChange(e){
     let dataItem = this.dataItem(e.item);
-    var masterName = dataItem.name.replace(/\s/g, '').toLowerCase()
+    var masterName;
+    if(dataItem){
+        masterName = dataItem.name.replace(/\s/g, '').toLowerCase()
+    }
     getTokenRedirect(loginRequest).then(response => {
         fetch(EMRSconfig.apiUri + '/graphql', {
           method: 'POST',
@@ -646,6 +641,27 @@ function generateReferenceFields(input_type, label_text, case_text, status){
                 }
                 if(!status) {
                     $('#reference-'+case_text).attr('readonly', true)
+                }
+                if(case_text == 'Timezone'){
+                    getTokenRedirect(loginRequest).then(response => {
+                        fetch(EMRSconfig.apiUri + '/graphql', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            "Authorization": "Bearer " + response.accessToken
+                          },
+                          body: JSON.stringify({query:'{timezones{id,name}}'})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            $('#reference-'+case_text).kendoDropDownList({
+                                optionLabel: "Select",
+                                dataTextField: "name",
+                                dataValueField: "id",
+                                dataSource: data.data.timezones
+                            });
+                        })
+                    })
                 }
             }
             break;
@@ -800,6 +816,7 @@ function add_child(masterType) {
                         
                         referenceDatas.push(newElement)
                         $("#treelist").data("kendoTreeList").dataSource.pushCreate(newElement);
+                        $("#treelist").data("kendoTreeList").refresh();
                         reference_pop.data("kendoWindow").close()
                     } else {
                         $('.k-error-msg').text('')
@@ -890,8 +907,22 @@ function edit_child(dataIndex, masterType){
                             var value = ref_post_val[key];
                             updatedElement[key] = value
                         }
+                        for(var i=0;i<urls.length;i++){
+                            if(urls[i].id == updatedElement.masterType){
+                                if(urls[i].parentid != null){
+                                    for(var j=0;j<urls.length;j++){
+                                        if(urls[i].parentid == urls[j].id){
+                                            updatedElement.parentid = urls[j].id * 10000 + updatedElement[urls[j].name + 'Id']
+                                            break;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
                         referenceDatas[ref_edit_num] = updatedElement
                         $("#treelist").data("kendoTreeList").dataSource.pushUpdate(updatedElement);
+                        $("#treelist").data("kendoTreeList").refresh();
                         reference_pop.data("kendoWindow").close()
                     } else {
                         $('.k-error-msg').text('')
@@ -1239,12 +1270,6 @@ $(document).ready(function() {
                         "Authorization": "Bearer " + response.accessToken
                       },
                     })
-                    // fetch('document_permissions_20210525.json', {
-                    //   method: 'GET',
-                    //   headers: {
-                    //     'Content-Type': 'application/json'
-                    //   },
-                    // })
                     .then(response => response.json())
                     .then(data => {
                         dPermission_data = data.value
@@ -1279,12 +1304,6 @@ $(document).ready(function() {
                       },
                       body: JSON.stringify({query:sys_fetch_body})
                     })
-                    // fetch('user_permissions_20210525.json', {
-                    //   method: 'GET',
-                    //   headers: {
-                    //     'Content-Type': 'application/json'
-                    //   }
-                    // })
                     .then(response => response.json())
                     .then(data => {
                         sysPermissionDatas = data.data
@@ -1357,6 +1376,7 @@ $(document).ready(function() {
     $('#tabstrip-tab-4').on('click', () => {
         if(permissionSimulationTabOpen){
             if(USER_PERMISSION.UserPermissionSimulation != 0){
+                $('#loader-wrap').removeClass('hide')
                 getTokenRedirect(loginRequest).then(response => {
                     var token_response = response
                     fetch(EMRSconfig.apiUri + '/graphql', {
@@ -1384,77 +1404,66 @@ $(document).ready(function() {
                         })
                     })
                 })
-                $.getJSON( "simulate_json/applied_permissions.json").then(function( data ) {
-                    var simulate_json = data.data
-                    $("#applied-permission").kendoGrid({
-                        dataSource: {
-                            data: simulate_json,
-                            schema: {
-                                model: {
-                                    fields: {
-                                    }
+                var simulate_json = applied_permissions.data
+                $("#applied-permission").kendoGrid({
+                    dataSource: {
+                        data: simulate_json,
+                        schema: {
+                            model: {
+                                fields: {
                                 }
-                            },
-                            batch: true
+                            }
                         },
-                        columns: [
-                            { field: "Application", title: "Application" },
-                            { field: "Permission" },
-                            { field: "Value" },
-                            { field: "AppliedRule", title: "Applied Rule" }
-                        ]
-                    })
+                        batch: true
+                    },
+                    columns: [
+                        { field: "Application", title: "Application" },
+                        { field: "Permission" },
+                        { field: "Value" },
+                        { field: "AppliedRule", title: "Applied Rule" }
+                    ]
                 })
 
-                $.getJSON( "simulate_json/specific_user.json").then(function( data ) {
-
-                    var specific_user_ds = new kendo.data.DataSource({
-                        data: data.data.users
-                    });
-
-                    var categories = $("#spec-user-select").kendoComboBox({
-                        placeholder: "Begin typing and select",
-                        dataTextField: "firstname",
-                        dataSource: specific_user_ds,
-                        filter: "contains",
-                        suggest: true,
-                        template: '#=firstname# #=lastname# - #=emailaddress#',
-                        filtering: function (ev) {
-                            var filterValue = ev.filter != undefined ? ev.filter.value : ''
-                            ev.preventDefault();
-                            this.dataSource.filter({
-                                logic: "or",
-                                filters: [
-                                    {
-                                        field: "firstname",
-                                        operator: "contains",
-                                        value: filterValue
-                                    },
-                                    {
-                                        field: "lastname",
-                                        operator: "contains",
-                                        value: filterValue
-                                    },
-                                    {
-                                        field: "emailaddress",
-                                        operator: "contains",
-                                        value: filterValue
-                                    }
-                                ]
-                            });
-                        }
-                    }).data("kendoComboBox");
-                    
+                var specific_user_ds = new kendo.data.DataSource({
+                    data: specific_user.data.users
                 });
+
+                var categories = $("#spec-user-select").kendoComboBox({
+                    placeholder: "Begin typing and select",
+                    dataTextField: "firstname",
+                    dataSource: specific_user_ds,
+                    filter: "contains",
+                    suggest: true,
+                    template: '#=firstname# #=lastname# - #=emailaddress#',
+                    filtering: function (ev) {
+                        var filterValue = ev.filter != undefined ? ev.filter.value : ''
+                        ev.preventDefault();
+                        this.dataSource.filter({
+                            logic: "or",
+                            filters: [
+                                {
+                                    field: "firstname",
+                                    operator: "contains",
+                                    value: filterValue
+                                },
+                                {
+                                    field: "lastname",
+                                    operator: "contains",
+                                    value: filterValue
+                                },
+                                {
+                                    field: "emailaddress",
+                                    operator: "contains",
+                                    value: filterValue
+                                }
+                            ]
+                        });
+                    }
+                }).data("kendoComboBox");
 
                 var simul_path = './simulate_json/'
                 var simul_dataSource = new kendo.data.DataSource({
-                    transport: {
-                        read: {
-                            dataType: "json",
-                            url: simul_path + "simulated_user.json"
-                        }
-                    },
+                    data: simulated_user.data.users,
                     pageSize: 4,
                     schema: {
                         model: {
@@ -1492,6 +1501,7 @@ $(document).ready(function() {
                     }
                 }).data("kendoFilter").applyFilter();
                 permissionSimulationTabOpen = false;
+                $('#loader-wrap').addClass('hide')
             } else {
                 $('#simulation-blue-bar').text('No Administrator groups are assigned to you');
                 $('#user-simulation').css('display', 'none')

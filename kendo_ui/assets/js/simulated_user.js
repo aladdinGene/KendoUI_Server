@@ -1,4 +1,4 @@
-{
+var simulated_user = {
   "data": {
     "users": [
       {
