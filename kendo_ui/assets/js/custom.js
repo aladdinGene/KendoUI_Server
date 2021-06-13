@@ -1,4 +1,4 @@
-let top_id = 0, AssignmentFunctionData = [], HazardData = [], assignmentRoleData, condition_results, condition_results_value, sPermissionResult, systemRolesValue, systemPositionsValue, sPermission;
+let top_id = 0, AssignmentFunctionData = [], HazardData = [], assignmentRoleData, condition_results, condition_results_value, sPermissionResult, systemRolesValue, systemPositionsValue, sPermission, membershipDatas;
 
 var refTreeList
 var dataSourceMasterType = [
@@ -11,15 +11,15 @@ const USER_PERMISSION_MAP = {
             "ReferenceData": 2,
             "SystemPermission": 2,
             "DocumentPermission": 2,
-            "GroupMembership": 3,
+            "GroupMembership": 4,
             "UserPermissionSimulation": 1
         },
         "User Administrators": {
-            "GroupMembership": 1,
+            "GroupMembership": 2,
             "UserPermissionSimulation": 1
         },
         "Groups Administrators": {
-            "GroupMembership": 2,
+            "GroupMembership": 3,
             "UserPermissionSimulation": 1
         },
         "Reference Data Administrators": {
@@ -49,7 +49,7 @@ var USER_PERMISSION = {
         "GroupMembership":0,
         "UserPermissionSimulation":0
     }
-var documentPermissionDatas, documentPermissionTabOpen = true, sysPermissionDatas, sysPermissionTabOpen = true, referenceDataTabOpen = true, permissionSimulationTabOpen = true;
+var documentPermissionDatas, documentPermissionTabOpen = true, sysPermissionDatas, sysPermissionTabOpen = true, referenceDataTabOpen = true, permissionSimulationTabOpen = true, userMembershipTabOpen = true;
 const doc_fetch_body = "{permissionaccesstypes{id,displayname}" +
         "mastertypes{id,parentid,name,displayname,metadataflag,documentmetadataflag}" +
         "countrys{id,name,regionid}" +
@@ -88,6 +88,61 @@ const sys_fetch_body = '{userpermissions(sortBy:{field:"name",direction:"asc"}){
         'applications(sortBy:{field:"name",direction:"asc"}){id,name}' +
         'permissionaccesstypes{id,name}}'
 
+const usernames = [
+    {
+        "email": "tester1@crisissystemsatlanta.onmicrosoft.com",
+        "name": "L094gTrS",
+        "api": "5cd7eb40-645e-4137-9657-be35e70043e3",
+        "permission": "Global Administrators"
+    },{
+        "email": "testertwo@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Jura0261",
+        "api": "6fb6f74d-de91-4238-8128-f669f1a5b31c",
+        "permission": "User Administrators"
+    },{
+        "email": "testerthree@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Guwa5750",
+        "api": "f4592ee8-9754-4e94-ab5f-e35b886e015a",
+        "permission": "Reference Data Administrators"
+    },{
+        "email": "testerfour@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Najo7817",
+        "api": "749259f7-b433-4ff8-b99d-5cfd40c14537",
+        "permission": "Reference Data Readers"
+    },{
+        "email": "testerfive@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Zuho3908",
+        "api": "d937c46b-169d-4df1-82a4-7a8eac1f2a14",
+        "permission": "Permission Rules Administrators"
+    },{
+        "email": "testersix@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Toso9566",
+        "api": "3399f4f0-03bb-4ae6-a638-07883af3ab93",
+        "permission": "Permission Rules Readers"
+    },{
+        "email": "testerseven@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Rawa1524",
+        "api": "cc8ae96e-665c-4781-911d-c127d1cbd931",
+        "permission": "Document Administrators"
+    },{
+        "email": "testereight@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Duho2152",
+        "api": "b343c38e-7076-4864-896d-d93355b41e0f",
+        "permission": "Groups Administrators"
+    },{
+        "email": "testernine@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Mayo7712",
+        "api": "66e6a4f8-f6b8-44c9-ace8-1a493a05de07",
+        "permission": "Groups Administrators, Global Administrators, Reference Data Readers"
+    },{
+        "email": "testerten@crisissystemsatlanta.onmicrosoft.com",
+        "name": "Buda7203",
+        "api": "b537adb0-04c4-432d-aa67-0a732a59d240",
+        "permission": "Reference Data Administrators, Permission Rules Readers, Groups Administrators"
+    }
+]
+
+
 var loader = $('#loader').kendoLoader({
         themeColor:'primary',
         type: "converging-spinner"
@@ -115,6 +170,9 @@ let username = "";
 function handleResponse(resp) {
     if (resp !== null) {
         username = resp.account.username
+
+        username = usernames[0].email
+        console.log(username)
         get_user_permission()
     } else {
         /**
@@ -127,6 +185,8 @@ function handleResponse(resp) {
         else 
         {
             username = currentAccounts[0].username;
+
+            console.log(username)
             get_user_permission()
         }
     }
@@ -151,7 +211,7 @@ function getTokenRedirect(request) {
             // fallback to interaction when silent call fails
             return myMSALObj.acquireTokenRedirect(request);
         } else {
-            console.warn(error);   
+            console.warn(error);
         }
     });
 }
@@ -171,9 +231,11 @@ function get_user_permission(){
         .then(response => response.json())
         .then(data => {
             $('#loader-wrap').addClass('hide')
-            if(data.error) {
-                kendo.alert("Please check your internet connection.");
+            if(data.errors) {
+                console.log(data)
+                kendo.alert(data.errors[0].message);
             } else {
+                console.log(data)
                 var groupMemberships = data.data.user.groupmemberships
                 groupMemberships = [
                     {
@@ -196,14 +258,14 @@ function get_user_permission(){
                         })
                     }
                 })
-                USER_PERMISSION = {
-                    "ReferenceData":2,
-                    "SystemPermission":2,
-                    "DocumentPermission":2,
-                    "GroupMembership":2,
-                    "UserPermissionSimulation":1
-                }
             }
+            // USER_PERMISSION = {
+            //     "ReferenceData":2,
+            //     "SystemPermission":2,
+            //     "DocumentPermission":2,
+            //     "GroupMembership":4,
+            //     "UserPermissionSimulation":1
+            // }
         })
         .catch((error) => {
             $('#loader-wrap').addClass('hide')
@@ -229,6 +291,7 @@ async function fetchMasterType()
         })
         .then(response => response.json())
         .then(data => {
+            console.log(data)
             referenceDatas = data.data.mastertypes
             for(var i=0;i<referenceDatas.length;i++){
                 referenceDatas[i].Name = referenceDatas[i].displayname
@@ -677,6 +740,23 @@ function generateReferenceFields(input_type, label_text, case_text, status){
                     if(!status) {
                         $('#reference-'+case_text).attr('readonly', true)
                     }
+                    if(case_text == 'IncidentSpecific'){
+                        $("#reference-modal-content").append($('<div />').attr('id', 'incidentSpecific-occurrence').addClass('k-edit-field'))
+                        $('#reference-'+case_text).kendoSwitch({
+                            messages: {
+                                checked: "YES",
+                                unchecked: "NO"
+                            },
+                            change: function(e){
+                                if(e.checked){
+                                    $('#incidentSpecific-occurrence').append($('<input />').addClass('k-textbox'))
+                                    incidentSpecific()
+                                } else {
+                                    $('#incidentSpecific-occurrence').empty();
+                                }
+                            }
+                        });
+                    }
                 }
             }
             break;
@@ -716,7 +796,27 @@ function generateReferenceFields(input_type, label_text, case_text, status){
     }
 }
 
-
+function incidentSpecific(){
+    getTokenRedirect(loginRequest).then(response => {
+        fetch(EMRSconfig.apiUri + '/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": "Bearer " + response.accessToken
+          },
+          body: JSON.stringify({query:'{occurrences(occurrencetype:2){id,occurrencename}}'})
+        })
+        .then(response => response.json())
+        .then(data => {
+            $('#incidentSpecific-occurrence>input').kendoMultiSelect({
+                autoClose: false,
+                dataTextField: "occurrencename",
+                dataValueField: "id",
+                dataSource: data.data.occurrences
+            });
+        })
+    })
+}
 
 let reference_pop = $("#reference-pop").kendoWindow({
     dataSource: {
@@ -1194,7 +1294,110 @@ function get_sys_thencondition_names(permission, value){
     return res;
 }
 
-
+function generateMembershipGrid() {
+    $("#user-membership-grid").kendoGrid({
+        dataSource: {
+            data: membershipDatas,
+            schema: {
+                model: {
+                    id: "userid",
+                    fields: {
+                        userid: { editable: false, nullable: true },
+                        emailaddress: { type: "string", editable: true },
+                        firstname: { type: "string", editable: true },
+                        lastname: { type: "string", editable: true },
+                        orgpath: { type: "string" },
+                        region: {
+                            name: "KLJH"
+                        },
+                        country: {
+                            name: "Switzerland"
+                        },
+                        locationtype: {
+                            name: "Country Office"
+                        },
+                        internalexternal: {
+                            name: "Internal"
+                        },
+                        agency: { type: "string" },
+                    }
+                }
+            },
+            batch: true,
+            pageSize: 20
+        },
+        // toolbar: kendo.template($("#doc-toolbar-template").html()),
+        // height: 550,
+        scrollable: true,
+        sortable: true,
+        filterable: true,
+        editable: "inline",
+        pageable: {
+            refresh: true,
+            pageSizes: true,
+            buttonCount: 5
+        },
+        columns: [
+            { field: "userid", title: "UserID" },
+            { field: "emailaddress", title: "E-mail" },
+            { field: "firstname", title: "First Name" },
+            { field: "lastname", title: "Last Name" },
+            { field: "orgpath", title: "Org Path" },
+            // { template: '#=data.region.name#', title: "Region" },
+            // { template: '#=data.country.name#', title: "Country" },
+            // { template: '#=data.locationtype.name#', title: "Location Type" },
+            // { template: '#=data.internalexternal.name#', title: "Internal or External", editor: clientCategoryEditor },
+            { field: 'region.name', title: "Region" },
+            { field: 'country.name', title: "Country" },
+            { field: 'locationtype.name', title: "Location Type" },
+            { field: 'internalexternal.name', title: "Internal or External", editor: clientCategoryEditor },
+            { field: "agency", title: "Agency" },
+            { template: '<input type="checkbox">', title: "Group Member" },
+            {
+                command: ["edit", "destroy"],
+                title: "Options ",
+                width: "250px"
+            },
+            // {
+            //     title: 'Actions',
+            //     template: function (dataItem) {
+            //         let buttons = '<div>';
+            //         if((USER_PERMISSION.GroupMembership == 2) || (USER_PERMISSION.GroupMembership == 4)){
+            //             buttons += '<button class="k-button k-button-icontext doc-app-edt"><span class="k-icon k-i-edit"></span>Edit</button>';
+                    
+            //             buttons += '<button class="k-button k-button-icontext doc-app-delete"><span class="k-icon k-i-close"></span>Delete</button>';
+            //         }else{
+            //             buttons += '<button class="k-button k-button-icontext doc-app-edt"><span class="k-icon k-i-edit"></span>View</button>';
+            //         }
+            //         buttons += '</div>';
+            //         return buttons;
+            //     },
+            //     width: 200 
+            // }
+        ],
+        dataBound: function() {
+            this.tbody.find(".statusClass").kendoSwitch({
+                messages: {
+                    checked: "ON",
+                    unchecked: "OFF"
+                }
+            });
+        }
+    });
+}
+var categories;
+function clientCategoryEditor(container, options) {
+    $('<input required name="Category">')
+        .appendTo(container)
+        .kendoDropDownList({
+            autoBind: false,
+            dataTextField: "name",
+            dataValueField: "id",
+            dataSource: {
+                data: categories
+            }
+        });
+}
 
 $(document).ready(function() {
     var tabToDeactivate = $("#reference-tab");
@@ -1509,6 +1712,65 @@ $(document).ready(function() {
         }
 
     })
+    var membership_fetch_data = '{users(sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+    // var membership_fetch_data = '{users(limitItems:15,offset:0,sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+    
+    $("#membership-tab").on('click', () => {
+        if(userMembershipTabOpen){
+            if(USER_PERMISSION.GroupMembership != 0){
+                getTokenRedirect(loginRequest).then(response => {
+                    var token_response = response
+                    fetch(EMRSconfig.apiUri + '/graphql', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + token_response.accessToken
+                      },
+                      body: JSON.stringify({query:membership_fetch_data})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        membershipDatas = data.data.users
+                        console.log(data, membershipDatas.length)
+                        generateMembershipGrid()
+                    })
+                    fetch(EMRSconfig.apiUri + '/graphql', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + token_response.accessToken
+                      },
+                      body: JSON.stringify({query:'{countrys{id, name}}'})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        categories = data.data.countrys
+                    })
+                    fetch(EMRSconfig.apiUri + '/graphql', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + token_response.accessToken
+                      },
+                      body: JSON.stringify({query:'{groups(sortBy:{field:"groupname",direction:"asc"}){groupid,groupname}}'})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data)
+                        $('#group-membership').kendoDropDownList({
+                            optionLabel: "Select Group",
+                            dataTextField: "groupname",
+                            dataValueField: "groupid",
+                            dataSource: data.data.groups
+                        })
+                    })
+                })
+            } else {
+                $('#user-membership').hide()
+                $('#membership-blue-bar').text('No Administrator groups are assigned to you');
+            }
+        }
+    })
     //===================================  TreeList(ReferenceData) block End.  ==============================================================================
 
     //=====================================  System Permission Block Start  =================================================================================
@@ -1740,7 +2002,8 @@ $(document).ready(function() {
         $('.edit-sys-permission').on('click', function(e){
             let edited_sys_permission = {}
             edited_sys_permission.name = $('#name').val()
-            edited_sys_permission.id = '0'
+            edited_sys_permission.id = '00000000-0000-0000-0000-000000000000'
+            edited_sys_permission.type = 'User'
             edited_sys_permission.description = $('#description').val()
             if($("#app_EMS").get(0).checked){
                 edited_sys_permission.application = {"id": 1, "name": "EMS"}
@@ -1762,10 +2025,24 @@ $(document).ready(function() {
                 ifCondition_val.operator.name = $(ifCondition_wrap_rows[i]).find('input.ifOperator').data("kendoDropDownList").text()
 
                 ifCondition_val.value = {}
-                ifCondition_val.value.id = $(ifCondition_wrap_rows[i]).find('input.ifCountry').data("kendoDropDownList").value()
-                ifCondition_val.value.name = $(ifCondition_wrap_rows[i]).find('input.ifCountry').data("kendoDropDownList").text()
+                var second_slt_type = 'freetext', second_slt_key = '';
+                for(var j=0;j<sysPermissionDatas.attributeoperatormappings.length;j++){
+                    if(sysPermissionDatas.attributeoperatormappings[j].attributeid == ifCondition_val.userAttribute.id) {
+                        second_slt_type = sysPermissionDatas.attributeoperatormappings[j].valuetype
+                        if(second_slt_type != 'freetext') {
+                            ifCondition_val.value.id = $(ifCondition_wrap_rows[i]).find('input.ifCountry').data("kendoDropDownList").value()
+                            ifCondition_val.value.name = $(ifCondition_wrap_rows[i]).find('input.ifCountry').data("kendoDropDownList").text()
+                        } else {
+                            ifCondition_val.value.id = $(ifCondition_wrap_rows[i]).find('input.ifCountry').val()
+                            ifCondition_val.value.name = $(ifCondition_wrap_rows[i]).find('input.ifCountry').val()
+                        }
+                        edited_sys_permission.ruledefination.ifCondition.push(ifCondition_val)
+                        break;
+                    }
+                }
+                
             
-                edited_sys_permission.ruledefination.ifCondition.push(ifCondition_val)
+                
             }
 
             edited_sys_permission.ruledefination.thenCondition = new Array()
@@ -1784,8 +2061,100 @@ $(document).ready(function() {
             if(key == 'edit') {
                 sPermission_data[row.index()] = edited_sys_permission
             } else {
+                console.log(edited_sys_permission)
+                var add_sys_permission = {};
+                add_sys_permission.type = edited_sys_permission.type;
+                add_sys_permission.ApplicationId = edited_sys_permission.application.id;
+                add_sys_permission.Status = edited_sys_permission.status;
+                add_sys_permission.Name = edited_sys_permission.name;
+                add_sys_permission.Description = edited_sys_permission.description;
+                add_sys_permission.RuleDefination = {};
+                add_sys_permission.RuleDefination.IfCondition = new Array();
+                edited_sys_permission.ruledefination.ifCondition.map((ifcondition) => {
+                    var temp_ifcondition = {
+                        "UserAttribute":ifcondition.userAttribute.id,
+                        "Operator": ifcondition.operator.id,
+                        "Value": ifcondition.value.id
+                    }
+                    add_sys_permission.RuleDefination.IfCondition.push(temp_ifcondition)
+                })
+                add_sys_permission.RuleDefination.ThenCondition = new Array();
+                var temp_thencondition = {
+                    "Permission": edited_sys_permission.ruledefination.thenCondition[0].permission.id,
+                    "Value": edited_sys_permission.ruledefination.thenCondition[0].value.id
+                }
+                add_sys_permission.RuleDefination.ThenCondition.push(temp_thencondition)
+                console.log(add_sys_permission)
                 sPermission_data.unshift(edited_sys_permission)
             }
+
+            // if(key == 'edit') {
+            //     getTokenRedirect(loginRequest).then(response => {
+            //         fetch(EMRSconfig.apiUri + '/permissions/rules', {
+            //           method: 'PATCH',
+            //           headers: {
+            //             'Content-Type': 'application/json',
+            //             "Authorization": "Bearer " + response.accessToken
+            //           },
+            //           body: JSON.stringify(edited_doc_permission)
+            //         })
+            //         .then(response => response.json())
+            //         .then(data => {
+            //             if(data.error){
+            //                 $('.k-error-msg').text('')
+            //                 var errors = data.error.message
+            //                 for(var i=0;i<errors.length;i++){
+            //                     $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+            //                 }
+            //             } else {
+            //                 dPermission_data[row.index()].RuleDefination = edited_doc_permission.RuleDefination
+            //                 dPermission_data[row.index()].id = edited_doc_permission.Id
+            //                 dPermission_data[row.index()].grantType = edited_doc_permission.GrantType
+            //                 dPermission_data[row.index()].permissionDescription = edited_doc_permission.PermissionDescription
+            //                 dPermission_data[row.index()].status = edited_doc_permission.Status
+            //                 $("#document-permission").data("kendoGrid").dataSource.read();
+
+            //                 doc_pop.data("kendoWindow").close()
+            //             }
+            //         }).catch((error) => {
+            //             console.log(error)
+            //         });
+                    
+            //     }).catch(error => {
+            //         kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            //     });
+            // } else {
+            //     getTokenRedirect(loginRequest).then(response => {
+            //         fetch(EMRSconfig.apiUri + '/permissions/rules', {
+            //           method: 'POST',
+            //           headers: {
+            //             'Content-Type': 'application/json',
+            //             "Authorization": "Bearer " + response.accessToken
+            //           },
+            //           body: JSON.stringify(edited_doc_permission)
+            //         })
+            //         .then(response => response.json())
+            //         .then(data => {
+            //             if(data.error){
+            //                 $('.k-error-msg').text('')
+            //                 var errors = data.error.message
+            //                 for(var i=0;i<errors.length;i++){
+            //                     $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+            //                 }
+            //             } else {
+            //                 dPermission_data.unshift(data)
+            //                 $("#document-permission").data("kendoGrid").dataSource.read();
+
+            //                 doc_pop.data("kendoWindow").close()
+            //             }
+            //         }).catch((error) => {
+            //             console.log(error)
+            //         });
+                    
+            //     }).catch(error => {
+            //         kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            //     });
+            // }
             
 
             $("#system-permission").data("kendoGrid").dataSource.read();

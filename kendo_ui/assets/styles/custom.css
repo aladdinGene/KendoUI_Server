@@ -15,7 +15,7 @@
 .justify-content-between{
     justify-content: space-between;
 }
-.k-toolbar button.k-button{
+.k-toolbar button.k-button, #user-membership button.k-button{
     color: #FFF;
     background-color: #196aaa;
 }
@@ -272,4 +272,24 @@ span.k-datetimepicker{
 }
 .ifCountry.k-textbox{
     margin-left: 10px;
+}
+#user-membership{
+    text-align: center;
+    padding: 0 20px;
+}
+#user-membership>div{
+    text-align: center;
+}
+#user-membership #group-membership-wrap .k-button{
+    margin-left: 20px;
+}
+#group-membership-wrap{
+    padding: 20px 0;
+}
+#group-membership{
+    width: 200px;
+    text-align: left;
+}
+#user-membership .k-dropdown{
+    text-align: left;
 }
