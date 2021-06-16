@@ -171,8 +171,6 @@ function handleResponse(resp) {
     if (resp !== null) {
         username = resp.account.username
 
-        username = usernames[0].email
-        console.log(username)
         get_user_permission()
     } else {
         /**
@@ -186,7 +184,6 @@ function handleResponse(resp) {
         {
             username = currentAccounts[0].username;
 
-            console.log(username)
             get_user_permission()
         }
     }
@@ -232,21 +229,9 @@ function get_user_permission(){
         .then(data => {
             $('#loader-wrap').addClass('hide')
             if(data.errors) {
-                console.log(data)
                 kendo.alert(data.errors[0].message);
             } else {
-                console.log(data)
                 var groupMemberships = data.data.user.groupmemberships
-                groupMemberships = [
-                    {
-                        "group": null
-                    },
-                    {
-                        "group": {
-                            "groupname": "Global Administrators"
-                        }
-                    }
-                ]
                 groupMemberships.map((groupMembership) => {
                     if(groupMembership.group != null){
                         var key = groupMembership.group.groupname
@@ -259,13 +244,6 @@ function get_user_permission(){
                     }
                 })
             }
-            // USER_PERMISSION = {
-            //     "ReferenceData":2,
-            //     "SystemPermission":2,
-            //     "DocumentPermission":2,
-            //     "GroupMembership":4,
-            //     "UserPermissionSimulation":1
-            // }
         })
         .catch((error) => {
             $('#loader-wrap').addClass('hide')
@@ -363,6 +341,7 @@ var fetchReferenceData = async () => {
                         } else {
                             present_index++
                             if((referenceDatas.length == total_index) && (present_index == urls.length)){
+                                console.log(referenceDatas)
                                 myResolve()
                             }
                         }
@@ -1565,7 +1544,6 @@ $(document).ready(function() {
                     }).catch((error) => {
                         console.log(error)
                     });
-                    
                 }).catch(error => {
                     $('#loader-wrap').addClass('hide')
                     kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
@@ -2061,8 +2039,8 @@ $(document).ready(function() {
             if(key == 'edit') {
                 sPermission_data[row.index()] = edited_sys_permission
             } else {
-                console.log(edited_sys_permission)
                 var add_sys_permission = {};
+                add_sys_permission.Id = edited_sys_permission.id;
                 add_sys_permission.type = edited_sys_permission.type;
                 add_sys_permission.ApplicationId = edited_sys_permission.application.id;
                 add_sys_permission.Status = edited_sys_permission.status;
@@ -2084,8 +2062,39 @@ $(document).ready(function() {
                     "Value": edited_sys_permission.ruledefination.thenCondition[0].value.id
                 }
                 add_sys_permission.RuleDefination.ThenCondition.push(temp_thencondition)
-                console.log(add_sys_permission)
-                sPermission_data.unshift(edited_sys_permission)
+                console.log(add_sys_permission, edited_sys_permission)
+
+                getTokenRedirect(loginRequest).then(response => {
+                    fetch(EMRSconfig.apiUri + '/permissions/rules', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + response.accessToken
+                      },
+                      body: JSON.stringify(add_sys_permission)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.error){
+                            $('.k-error-msg').text('')
+                            var errors = data.error.message
+                            for(var i=0;i<errors.length;i++){
+                                $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+                            }
+                        } else {
+                            sPermission_data.unshift(edited_sys_permission)
+                            $("#system-permission").data("kendoGrid").dataSource.read();
+                            doc_pop.data("kendoWindow").close()
+                        }
+                    }).catch((error) => {
+                        console.log(error)
+                    });
+                    
+                }).catch(error => {
+                    kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+                });
+
+                // sPermission_data.unshift(edited_sys_permission)
             }
 
             // if(key == 'edit') {
@@ -2157,9 +2166,9 @@ $(document).ready(function() {
             // }
             
 
-            $("#system-permission").data("kendoGrid").dataSource.read();
+            // $("#system-permission").data("kendoGrid").dataSource.read();
 
-            sys_pop.data("kendoWindow").close()
+            // sys_pop.data("kendoWindow").close()
         })
         $('.close-sys-permission').on('click', function(e){
             sys_pop.data("kendoWindow").close()
@@ -2929,3 +2938,5 @@ function deselect_user_meta_data(e){
 
     $("div[dataName='"+text+"']").remove()
 }
+
+
