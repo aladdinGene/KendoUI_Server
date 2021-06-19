@@ -269,7 +269,6 @@ async function fetchMasterType()
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data)
             referenceDatas = data.data.mastertypes
             for(var i=0;i<referenceDatas.length;i++){
                 referenceDatas[i].Name = referenceDatas[i].displayname
@@ -301,7 +300,7 @@ async function fetchMasterType()
     });
     
 }
-
+var order_null_number = 0;
 
 var fetchReferenceData = async () => {
     let myPromise = new Promise(async function(myResolve, myReject) {
@@ -324,6 +323,7 @@ var fetchReferenceData = async () => {
                             var temp_data = data.value
                             total_index += temp_data.length;
                             for(var i=0;i<temp_data.length;i++){
+                                if(temp_data[i].OrderId == undefined || temp_data[i].OrderId == null || temp_data[i].OrderId == 0) order_null_number++
                                 var temp_data_row = temp_data[i]
                                 temp_data_row.id = url.id * 10000 + temp_data_row.Id
                                 temp_data_row.masterType = url.id
@@ -341,7 +341,6 @@ var fetchReferenceData = async () => {
                         } else {
                             present_index++
                             if((referenceDatas.length == total_index) && (present_index == urls.length)){
-                                console.log(referenceDatas)
                                 myResolve()
                             }
                         }
@@ -368,6 +367,7 @@ var fetchReferenceData = async () => {
 
 
 function referenceTreeInit(){
+    console.log(order_null_number)
 
     var url_length = urls.length
     for(var i=0;i<url_length;i++){
@@ -2274,7 +2274,7 @@ $(document).ready(function() {
             setTimeout(() => {
 
                 var page_num = grid.dataSource.pageSize() * (grid.dataSource.page() - 1) + row.index()
-                let data = dPermission_data[page_num];
+                var data = dPermission_data[page_num];
 
                 let doc_meta_wrap = $('#doc-metadata-wrap')
 
