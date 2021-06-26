@@ -235,6 +235,10 @@
                         <input type="text" id="description" name="description" title="description" class="k-textbox" value="#if(!data.isNew){##=data.description##}#" #if(USER_PERMISSION.SystemPermission != 2){#readonly#}#>
                     </div>
 
+                    #if(!data.isNew){#
+                        <input type="hidden" value="#=data.id#" id="sys-hidden-id" />
+                    #}#
+
                     <div class="sys-pop-edit-label">
                         <label for="app_EMS">Application</label>
                     </div>

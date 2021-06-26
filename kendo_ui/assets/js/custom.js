@@ -367,8 +367,6 @@ var fetchReferenceData = async () => {
 
 
 function referenceTreeInit(){
-    console.log(order_null_number)
-
     var url_length = urls.length
     for(var i=0;i<url_length;i++){
         if(referenceDatas[i].parentid != null){
@@ -413,7 +411,7 @@ function referenceTreeInit(){
             }
         },
         sort: [
-            // sort by "category" in descending order and then by "name" in ascending order
+            // sort by "OrderId"
             { field: "OrderId", dir: "asc" },
             { field: "id", dir: "asc" }
         ],
@@ -443,12 +441,6 @@ function referenceTreeInit(){
                 e.container.find(".k-button.k-grid-update").html('<span class="k-icon k-i-check"></span>Edit')
             }
         },
-        filterable: true,
-        sortable: true,
-        resizable: true,
-        reorderable: reorderable,
-        navigatable: true,
-        columnMenu: true,
         columns: [{
             title: "EMS",
             columns: [
@@ -493,81 +485,12 @@ function referenceTreeInit(){
             pageSize: 15,
             pageSizes: true
         },
-        drop: function(e) {
-            if((e.position == 'over') || (e.source.parentid != e.destination.parentid)) {
-                e.preventDefault();
-            } else {
-                $('#loader-wrap').removeClass('hide')
-                var source_data = {
-                    "Id":e.source.Id,
-                    "Type": e.source.masterType,
-                    "OrderId": e.destination.OrderId
-                }
-                var destination_data = {
-                    "Id":e.destination.Id,
-                    "Type": e.destination.masterType,
-                    "OrderId": e.source.OrderId
-                }
-                getTokenRedirect(loginRequest).then(response => {
-                    $.ajax({
-                        url: EMRSconfig.apiUri + '/referenceData/items',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            "Authorization": "Bearer " + response.accessToken
-                        },
-                        type: 'PATCH',
-                        data: JSON.stringify(source_data),
-                        cache:false,
-                        contentType: false,
-                        processData: false,
-                        success: function (data) {
-                            $.ajax({
-                                url: EMRSconfig.apiUri + '/referenceData/items',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    "Authorization": "Bearer " + response.accessToken
-                                },
-                                type: 'PATCH',
-                                data: JSON.stringify(destination_data),
-                                cache:false,
-                                contentType: false,
-                                processData: false,
-                                success: function (data) {
-                                    var first_order_id = e.source.OrderId;
-                                    e.source.set("OrderId", e.destination.OrderId);
-                                    e.destination.set("OrderId", first_order_id);
-                                    var order_fixed = 0;
-                                    for(i=0;i<referenceDatas.length;i++){
-                                        if(referenceDatas[i].id == e.source.id) {
-                                            referenceDatas[i].OrderId = e.source.OrderId;
-                                            order_fixed++;
-                                        }
-                                        if(referenceDatas[i].id == e.destination.id) {
-                                            referenceDatas[i].OrderId = e.destination.OrderId;
-                                            order_fixed++;
-                                        }
-                                        if(order_fixed == 2) break;
-                                    }
-                                    e.sender.refresh();
-                                    $('#loader-wrap').addClass('hide')
-                                },
-                                error: function (data) {
-                                    $('#loader-wrap').addClass('hide')
-                                    kendo.alert("Reordering is failed.");
-                                }
-                            })
-                        },
-                        error: function (data) {
-                            $('#loader-wrap').addClass('hide')
-                            kendo.alert("Reordering is failed.");
-                        }
-                    });
-                }).catch(error => {
-                    $('#loader-wrap').addClass('hide')
-                    kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
-                })
-            }
-        }
+        filterable: true,
+        navigatable: true,
+        filterMenuOpen: function(e) {
+            $('.k-action-buttons .k-button[type=reset]').on('click', kendoCollapseAll)
+        },
+        drop: reorderReferenceData
     });
 
     let treeList = $("#treelist").data("kendoTreeList");
@@ -584,6 +507,115 @@ function referenceTreeInit(){
             });
         }
     })
+
+    let kendoCollapseAll = () => {
+        $.each(rows, function(idx, row) {
+            treeList.collapse(row);
+        });
+    }
+}
+
+function compare( a, b ) {
+    if ( a.OrderId < b.OrderId ){
+        return -1;
+    }
+    if ( a.OrderId > b.OrderId ){
+        return 1;
+    }
+    return 0;
+}
+
+async function reorderReferenceData(e) {
+    if((e.position == 'over') || (e.source.parentid != e.destination.parentid)) {
+        e.preventDefault();
+    } else {
+        $('#loader-wrap').removeClass('hide')
+        var temp_dataSource = $("#treelist").data("kendoTreeList").dataSource.data()
+        
+        var orderId = 0;
+        var DestinationReached = false, SourceReached = false;
+        var firstEditDatas = new Array();
+        for(var i=0;i<temp_dataSource.length;i++){
+            if(temp_dataSource[i].parentid == e.destination.parentid){
+                // console.log(temp_dataSource[i].Id)
+                var source_data = {
+                    "Id":temp_dataSource[i].Id,
+                    "Type": temp_dataSource[i].masterType,
+                    "OrderId": temp_dataSource[i].OrderId
+                }
+                firstEditDatas.push(source_data)
+            }
+        }
+
+
+        await firstEditDatas.sort( compare );
+        var secondEditDatas = new Array();
+
+        for(var i=0;i<firstEditDatas.length;i++){
+            var source_data = {
+                "Id":firstEditDatas[i].Id,
+                "Type": firstEditDatas[i].Type,
+                "OrderId": orderId
+            }
+            if(firstEditDatas[i].Id == e.destination.Id){
+                if(!DestinationReached) {
+                    i--;
+                    DestinationReached = true;
+                    source_data = {
+                        "Id": e.source.Id,
+                        "Type":  e.source.masterType,
+                        "OrderId": orderId
+                    }
+                }
+            } else if(firstEditDatas[i].Id == e.source.Id) {
+                if(!SourceReached) {
+                    SourceReached = true;
+                    continue;
+                }
+            }
+            secondEditDatas.push(source_data)
+            orderId++
+        }
+
+        secondEditDatas.map((source_data, index) => {
+            getTokenRedirect(loginRequest).then(response => {
+                $.ajax({
+                    url: EMRSconfig.apiUri + '/referenceData/items',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + response.accessToken
+                    },
+                    type: 'PATCH',
+                    data: JSON.stringify(source_data),
+                    cache:false,
+                    contentType: false,
+                    processData: false,
+                    success: function (data) {
+                        for(j=0;j<referenceDatas.length;j++){
+                            if((referenceDatas[j].Id == data.value.Id) && (referenceDatas[j].CreatedBy == data.value.CreatedBy)) {
+                                referenceDatas[j].OrderId = data.value.OrderId;
+                                referenceDatas[j].ModifiedBy = data.value.ModifiedBy
+                                referenceDatas[j].ModifiedDate = data.value.ModifiedDate
+                                $("#treelist").data("kendoTreeList").dataSource.pushUpdate(referenceDatas[j]);
+                                break;
+                            }
+                        }
+                        if(index == (secondEditDatas.length - 1)) {
+                            $('#loader-wrap').addClass('hide')
+                            $("#treelist").data("kendoTreeList").refresh();
+                        }
+                    },
+                    error: function (data) {
+                        $('#loader-wrap').addClass('hide')
+                        kendo.alert("Reordering is failed.");
+                    }
+                });
+            }).catch(error => {
+                $('#loader-wrap').addClass('hide')
+                kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            })
+        })
+    }
 }
 
 //================== MSAL Auth Block End =============
@@ -593,7 +625,7 @@ let ref_edit_data = '', ref_editting = false;
 function masterTypeChange(e){
     let dataItem = this.dataItem(e.item);
     var masterName;
-    if(dataItem){
+    if(dataItem.name != undefined){
         masterName = dataItem.name.replace(/\s/g, '').toLowerCase()
     }
     getTokenRedirect(loginRequest).then(response => {
@@ -609,7 +641,9 @@ function masterTypeChange(e){
         .then(data => {
             $("#reference-modal-content").empty()
             $("#parent-type-wrap").empty()
-            checkFieldExist(data.data.__type.fields)
+            if(dataItem.name != undefined){
+                checkFieldExist(data.data.__type.fields)
+            }
             for(let i=0;i<urls.length;i++){
                 if(urls[i].id == dataItem.id) {
                     if(urls[i].parentid != null) {
@@ -869,18 +903,21 @@ function add_child(masterType) {
                 processData: false,
                 success: function (data) {
                     if(data.value) {
-                        var newElement = data.value
+                        var newElement = {};
+                        for (const [key, value] of Object.entries(data.value)) {
+                            newElement[key] = value
+                        }
                         var masterDetails;
 
                         for(var i=0;i<urls.length;i++){
-                            if(urls[i].id == masterType){
+                            if(urls[i].id == ref_post_val.Type){
                                 masterDetails = urls[i];
                                 break;
                             }
                         }
-
+                        console.log(masterDetails, ref_post_val.Type)
                         if(masterDetails.parentid == null) {
-                            newElement.parentid = masterType
+                            newElement.parentid = ref_post_val.Type
                         } else {
                             for(var i=0;i<urls.length;i++){
                                 if(urls[i].id == masterDetails.parentid){
@@ -981,7 +1018,7 @@ function edit_child(dataIndex, masterType){
                 contentType: false,
                 processData: false,
                 success: function (data) {
-                    if(data.success) {
+                    if(!data.error) {
                         for(var key in ref_post_val) {
                             var value = ref_post_val[key];
                             updatedElement[key] = value
@@ -999,6 +1036,8 @@ function edit_child(dataIndex, masterType){
                                 break;
                             }
                         }
+                        updatedElement.ModifiedBy = data.value.ModifiedBy;
+                        updatedElement.ModifiedDate = data.value.ModifiedDate;
                         referenceDatas[ref_edit_num] = updatedElement
                         $("#treelist").data("kendoTreeList").dataSource.pushUpdate(updatedElement);
                         $("#treelist").data("kendoTreeList").refresh();
@@ -1832,6 +1871,7 @@ $(document).ready(function() {
             sys_pop.data("kendoWindow").content(kendoDialog(viewModel)).center().open()
             setTimeout(() => {
                 $("#status").kendoSwitch();
+                $("#sys-hidden-id").val(sys_pop_edit_dataSource.id)
                 var first_slt_id = sys_pop_edit_dataSource.ruledefination.ifCondition[0].userAttribute.id;
                 $(".ifCondition").kendoDropDownList({
                     optionLabel: "Select",
@@ -2036,32 +2076,68 @@ $(document).ready(function() {
 
             edited_sys_permission.ruledefination.thenCondition.push(thenCondition_val)
 
-            if(key == 'edit') {
-                sPermission_data[row.index()] = edited_sys_permission
-            } else {
-                var add_sys_permission = {};
-                add_sys_permission.Id = edited_sys_permission.id;
-                add_sys_permission.type = edited_sys_permission.type;
-                add_sys_permission.ApplicationId = edited_sys_permission.application.id;
-                add_sys_permission.Status = edited_sys_permission.status;
-                add_sys_permission.Name = edited_sys_permission.name;
-                add_sys_permission.Description = edited_sys_permission.description;
-                add_sys_permission.RuleDefination = {};
-                add_sys_permission.RuleDefination.IfCondition = new Array();
-                edited_sys_permission.ruledefination.ifCondition.map((ifcondition) => {
-                    var temp_ifcondition = {
-                        "UserAttribute":ifcondition.userAttribute.id,
-                        "Operator": ifcondition.operator.id,
-                        "Value": ifcondition.value.id
-                    }
-                    add_sys_permission.RuleDefination.IfCondition.push(temp_ifcondition)
-                })
-                add_sys_permission.RuleDefination.ThenCondition = new Array();
-                var temp_thencondition = {
-                    "Permission": edited_sys_permission.ruledefination.thenCondition[0].permission.id,
-                    "Value": edited_sys_permission.ruledefination.thenCondition[0].value.id
+            var add_sys_permission = {};
+            add_sys_permission.Id = edited_sys_permission.id;
+            add_sys_permission.type = edited_sys_permission.type;
+            add_sys_permission.ApplicationId = Number(edited_sys_permission.application.id);
+            add_sys_permission.Status = edited_sys_permission.status;
+            add_sys_permission.Name = edited_sys_permission.name;
+            add_sys_permission.Description = edited_sys_permission.description;
+            add_sys_permission.RuleDefination = {};
+            add_sys_permission.RuleDefination.IfCondition = new Array();
+            edited_sys_permission.ruledefination.ifCondition.map((ifcondition) => {
+                var temp_ifcondition = {
+                    "UserAttribute":Number(ifcondition.userAttribute.id),
+                    "Operator": Number(ifcondition.operator.id),
+                    "Value": ifcondition.value.id.toString()
                 }
-                add_sys_permission.RuleDefination.ThenCondition.push(temp_thencondition)
+                add_sys_permission.RuleDefination.IfCondition.push(temp_ifcondition)
+            })
+            add_sys_permission.RuleDefination.ThenCondition = {};
+            var temp_thencondition = {
+                "Permission": Number(edited_sys_permission.ruledefination.thenCondition[0].permission.id),
+                "Value": edited_sys_permission.ruledefination.thenCondition[0].value.id.toString()
+            }
+            add_sys_permission.RuleDefination.ThenCondition = temp_thencondition
+
+            if(key == 'edit') {
+                // sPermission_data[row.index()] = edited_sys_permission
+                add_sys_permission.Id = $("#sys-hidden-id").val()
+                console.log(add_sys_permission, edited_sys_permission)
+
+                getTokenRedirect(loginRequest).then(response => {
+                    fetch(EMRSconfig.apiUri + '/permissions/rules', {
+                      method: 'PATCH',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + response.accessToken
+                      },
+                      body: JSON.stringify(add_sys_permission)
+                      // body: '{"type":"User","Name":"BRR1 and OPP1 can update EMS2","Description":"Testing uer permissions","ApplicationId":2,"Status":true,"RuleDefination":{"IfCondition":[{"UserAttribute":2,"Operator":1,"Value":"BRR1"},{"UserAttribute":2,"Operator":1,"Value":"OPP1"}],"ThenCondition":{"Permission":3,"Value":"6"}},"Id":"00000000-0000-0000-0000-000000000000"}'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.error){
+                            $('.k-error-msg').text('')
+                            var errors = data.error.message
+                            for(var i=0;i<errors.length;i++){
+                                $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+                            }
+                        } else {
+                            edited_sys_permission.id = $("#sys-hidden-id").val()
+                            sPermission_data[row.index()] = edited_sys_permission
+                            $("#system-permission").data("kendoGrid").dataSource.read();
+                            doc_pop.data("kendoWindow").close()
+                        }
+                    }).catch((error) => {
+                        console.log(error)
+                    });
+                    
+                }).catch(error => {
+                    kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+                });
+            } else {
+                
                 console.log(add_sys_permission, edited_sys_permission)
 
                 getTokenRedirect(loginRequest).then(response => {
@@ -2072,6 +2148,7 @@ $(document).ready(function() {
                         "Authorization": "Bearer " + response.accessToken
                       },
                       body: JSON.stringify(add_sys_permission)
+                      // body: '{"type":"User","Name":"BRR1 and OPP1 can update EMS2","Description":"Testing uer permissions","ApplicationId":2,"Status":true,"RuleDefination":{"IfCondition":[{"UserAttribute":2,"Operator":1,"Value":"BRR1"},{"UserAttribute":2,"Operator":1,"Value":"OPP1"}],"ThenCondition":{"Permission":3,"Value":"6"}},"Id":"00000000-0000-0000-0000-000000000000"}'
                     })
                     .then(response => response.json())
                     .then(data => {
@@ -2093,82 +2170,7 @@ $(document).ready(function() {
                 }).catch(error => {
                     kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
                 });
-
-                // sPermission_data.unshift(edited_sys_permission)
             }
-
-            // if(key == 'edit') {
-            //     getTokenRedirect(loginRequest).then(response => {
-            //         fetch(EMRSconfig.apiUri + '/permissions/rules', {
-            //           method: 'PATCH',
-            //           headers: {
-            //             'Content-Type': 'application/json',
-            //             "Authorization": "Bearer " + response.accessToken
-            //           },
-            //           body: JSON.stringify(edited_doc_permission)
-            //         })
-            //         .then(response => response.json())
-            //         .then(data => {
-            //             if(data.error){
-            //                 $('.k-error-msg').text('')
-            //                 var errors = data.error.message
-            //                 for(var i=0;i<errors.length;i++){
-            //                     $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
-            //                 }
-            //             } else {
-            //                 dPermission_data[row.index()].RuleDefination = edited_doc_permission.RuleDefination
-            //                 dPermission_data[row.index()].id = edited_doc_permission.Id
-            //                 dPermission_data[row.index()].grantType = edited_doc_permission.GrantType
-            //                 dPermission_data[row.index()].permissionDescription = edited_doc_permission.PermissionDescription
-            //                 dPermission_data[row.index()].status = edited_doc_permission.Status
-            //                 $("#document-permission").data("kendoGrid").dataSource.read();
-
-            //                 doc_pop.data("kendoWindow").close()
-            //             }
-            //         }).catch((error) => {
-            //             console.log(error)
-            //         });
-                    
-            //     }).catch(error => {
-            //         kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
-            //     });
-            // } else {
-            //     getTokenRedirect(loginRequest).then(response => {
-            //         fetch(EMRSconfig.apiUri + '/permissions/rules', {
-            //           method: 'POST',
-            //           headers: {
-            //             'Content-Type': 'application/json',
-            //             "Authorization": "Bearer " + response.accessToken
-            //           },
-            //           body: JSON.stringify(edited_doc_permission)
-            //         })
-            //         .then(response => response.json())
-            //         .then(data => {
-            //             if(data.error){
-            //                 $('.k-error-msg').text('')
-            //                 var errors = data.error.message
-            //                 for(var i=0;i<errors.length;i++){
-            //                     $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
-            //                 }
-            //             } else {
-            //                 dPermission_data.unshift(data)
-            //                 $("#document-permission").data("kendoGrid").dataSource.read();
-
-            //                 doc_pop.data("kendoWindow").close()
-            //             }
-            //         }).catch((error) => {
-            //             console.log(error)
-            //         });
-                    
-            //     }).catch(error => {
-            //         kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
-            //     });
-            // }
-            
-
-            // $("#system-permission").data("kendoGrid").dataSource.read();
-
-            // sys_pop.data("kendoWindow").close()
         })
         $('.close-sys-permission').on('click', function(e){
             sys_pop.data("kendoWindow").close()
@@ -2406,10 +2408,10 @@ $(document).ready(function() {
             edited_doc_permission.RuleDefination.UserMetadata = new Array();
             let user_metadatas = $("#user_meta_data").data("kendoMultiSelect").dataItems()
             for(let i=0;i<user_metadatas.length;i++){
-                edited_doc_permission.RuleDefination.UserMetadata.push({
-                    "id": user_metadatas[i].id,
-                    "itemName": user_metadatas[i].name
-                })
+                    edited_doc_permission.RuleDefination.UserMetadata.push({
+                        "id": user_metadatas[i].id,
+                        "itemName": user_metadatas[i].name
+                    })
             }
 
             document_metadata_items = $("#user-metadata-wrap select")
@@ -2420,10 +2422,17 @@ $(document).ready(function() {
 
                 edited_doc_permission.RuleDefination[key] = new Array();
                 for(let j=0;j<document_metadata_values.length;j++){
-                    edited_doc_permission.RuleDefination[key].push({
-                        "id": document_metadata_values[j].id,
-                        "itemName": document_metadata_values[j].name
-                    })
+                    if(key == 'UserPermissionGroup') {
+                        edited_doc_permission.RuleDefination[key].push({
+                            "id": document_metadata_values[j].groupid,
+                            "itemName": document_metadata_values[j].groupname
+                        })
+                    } else {
+                        edited_doc_permission.RuleDefination[key].push({
+                            "id": document_metadata_values[j].id,
+                            "itemName": document_metadata_values[j].name
+                        })
+                    }
                 }
             }
 
