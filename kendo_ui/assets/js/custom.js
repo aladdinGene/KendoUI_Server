@@ -929,6 +929,7 @@ function add_child(masterType) {
 
                         newElement.id = masterDetails.id * 10000 + newElement.Id
                         newElement.masterType = masterDetails.id
+                        newElement.masterName = masterDetails.Name
                         
                         referenceDatas.push(newElement)
                         $("#treelist").data("kendoTreeList").dataSource.pushCreate(newElement);
