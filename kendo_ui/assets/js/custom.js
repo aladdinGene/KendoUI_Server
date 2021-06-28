@@ -1327,7 +1327,10 @@ function generateMembershipGrid() {
                         lastname: { type: "string", editable: true },
                         orgpath: { type: "string" },
                         region: {
-                            name: "KLJH"
+                            defaultValue:{
+                                name: "KLJH"
+                            },
+                            nullable: true
                         },
                         country: {
                             name: "Switzerland"
@@ -1362,10 +1365,10 @@ function generateMembershipGrid() {
             { field: "firstname", title: "First Name" },
             { field: "lastname", title: "Last Name" },
             { field: "orgpath", title: "Org Path" },
-            // { template: '#=data.region.name#', title: "Region" },
-            // { template: '#=data.country.name#', title: "Country" },
-            // { template: '#=data.locationtype.name#', title: "Location Type" },
-            // { template: '#=data.internalexternal.name#', title: "Internal or External", editor: clientCategoryEditor },
+            // { template: '#if(data.region){##=data.region.name##} else {##=""##}#', title: "Region" },
+            // { template: '#if(data.country){##=data.country.name##} else {##=""##}#', title: "Country" },
+            // { template: '#if(data.locationtype){##=data.locationtype.name##} else {##=""##}#', title: "Location Type" },
+            // { template: '#if(data.internalexternal){##=data.internalexternal.name##} else {##=""##}#', title: "Internal or External", editor: clientCategoryEditor },
             { field: 'region.name', title: "Region" },
             { field: 'country.name', title: "Country" },
             { field: 'locationtype.name', title: "Location Type" },
@@ -1406,6 +1409,7 @@ function generateMembershipGrid() {
 }
 var categories;
 function clientCategoryEditor(container, options) {
+    console.log('aaaaaaaaaaaaaaaaaaa')
     $('<input required name="Category">')
         .appendTo(container)
         .kendoDropDownList({
@@ -1730,8 +1734,8 @@ $(document).ready(function() {
         }
 
     })
-    var membership_fetch_data = '{users(sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
-    // var membership_fetch_data = '{users(limitItems:15,offset:0,sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+    // var membership_fetch_data = '{users(sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+    var membership_fetch_data = '{users(limitItems:15,offset:0,sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
     
     $("#membership-tab").on('click', () => {
         if(userMembershipTabOpen){
@@ -1749,9 +1753,32 @@ $(document).ready(function() {
                     .then(response => response.json())
                     .then(data => {
                         membershipDatas = data.data.users
-                        console.log(data, membershipDatas.length)
+                        membershipDatas.map((membershipData, index) => {
+                            if(membershipData.region == null){
+                                membershipData.region = {
+                                    name: null
+                                }
+                            }
+                            if(membershipData.country == null){
+                                membershipData.country = {
+                                    name: null
+                                }
+                            }
+                            if(membershipData.locationtype == null){
+                                membershipData.locationtype = {
+                                    name: null
+                                }
+                            }
+                            if(membershipData.internalexternal == null){
+                                membershipData.internalexternal = {
+                                    name: null
+                                }
+                            }
+                        })
+                        console.log(membershipDatas, membershipDatas.length)
                         generateMembershipGrid()
                     })
+
                     fetch(EMRSconfig.apiUri + '/graphql', {
                       method: 'POST',
                       headers: {
@@ -1764,6 +1791,7 @@ $(document).ready(function() {
                     .then(data => {
                         categories = data.data.countrys
                     })
+
                     fetch(EMRSconfig.apiUri + '/graphql', {
                       method: 'POST',
                       headers: {
