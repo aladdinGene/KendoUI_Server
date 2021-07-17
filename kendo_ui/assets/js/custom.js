@@ -70,7 +70,9 @@ const doc_fetch_body = "{permissionaccesstypes{id,displayname}" +
         "documentroles{id,name,assignmentfunctionid}" +
         "occurrences{id,occurrencename}" +
         "groups{groupid,groupname}" +
-        "locations{id,name}}"
+        "locations{id,name}" +
+        "assignmentfunctions{id,name}" +
+        "informationconfidentialitys{id,name}}"
 
 const sys_fetch_body = '{userpermissions(sortBy:{field:"name",direction:"asc"}){id,name,description,application{id, name},ruledefination}' +
         'userattributes(sortBy:{field:"name",direction:"asc"}){id,name,displayname}' +
@@ -86,7 +88,8 @@ const sys_fetch_body = '{userpermissions(sortBy:{field:"name",direction:"asc"}){
         'systempositions(sortBy:{field:"name",direction:"asc"}){id,name}' +
         'systemroles(sortBy:{field:"name",direction:"asc"}){id,name}' +
         'applications(sortBy:{field:"name",direction:"asc"}){id,name}' +
-        'permissionaccesstypes{id,name}}'
+        'permissionaccesstypes{id,name}' +
+        'groups(grouptypes:1){groupid,groupname}}'
 
 const usernames = [
     {
@@ -142,6 +145,10 @@ const usernames = [
     }
 ]
 
+// Membership Tab variables
+var membership_length_fetch_data = '{users{aggregate_count,aggregate_userid_max}}'
+var membership_fetch_data = '{users(limitItems:15,offset:0,sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+var MEMBERSHIP_LENGTH = 0, membership_pager;
 
 var loader = $('#loader').kendoLoader({
         themeColor:'primary',
@@ -1346,7 +1353,7 @@ function generateMembershipGrid() {
                 }
             },
             batch: true,
-            pageSize: 20
+            pageSize: 15
         },
         // toolbar: kendo.template($("#doc-toolbar-template").html()),
         // height: 550,
@@ -1354,11 +1361,11 @@ function generateMembershipGrid() {
         sortable: true,
         filterable: true,
         editable: "inline",
-        pageable: {
-            refresh: true,
-            pageSizes: true,
-            buttonCount: 5
-        },
+        // pageable: {
+        //     refresh: true,
+        //     pageSizes: true,
+        //     buttonCount: 5
+        // },
         columns: [
             { field: "userid", title: "UserID" },
             { field: "emailaddress", title: "E-mail" },
@@ -1420,6 +1427,54 @@ function clientCategoryEditor(container, options) {
                 data: categories
             }
         });
+}
+
+function user_membership_page_update(){
+    $('#loader-wrap').removeClass('hide')
+    getTokenRedirect(loginRequest).then(response => {
+        fetch(EMRSconfig.apiUri + '/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": "Bearer " + response.accessToken
+          },
+          body: JSON.stringify({query:membership_fetch_data})
+        })
+        .then(response => response.json())
+        .then(data => {
+            membershipDatas = data.data.users
+            membershipDatas.map((membershipData, index) => {
+                if(membershipData.region == null){
+                    membershipData.region = {
+                        name: null
+                    }
+                }
+                if(membershipData.country == null){
+                    membershipData.country = {
+                        name: null
+                    }
+                }
+                if(membershipData.locationtype == null){
+                    membershipData.locationtype = {
+                        name: null
+                    }
+                }
+                if(membershipData.internalexternal == null){
+                    membershipData.internalexternal = {
+                        name: null
+                    }
+                }
+            })
+            var user_membership_grid = $("#user-membership-grid").data("kendoGrid")
+            user_membership_grid.dataSource.data(membershipDatas)
+            user_membership_grid.dataSource.page(1);
+            $('#loader-wrap').addClass('hide')
+        })
+    }).catch(error => {
+        $('#loader-wrap').addClass('hide')
+        console.log(error)
+        kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+    });
 }
 
 $(document).ready(function() {
@@ -1614,7 +1669,6 @@ $(document).ready(function() {
                     })
                     .then(response => response.json())
                     .then(data => {
-                        console.log(data)
                         var user_id = data.data.user.userid
                         fetch(EMRSconfig.apiUri + '/users/' + user_id + '/permissions', {
                           method: 'GET',
@@ -1625,7 +1679,6 @@ $(document).ready(function() {
                         })
                         .then(response => response.json())
                         .then(data => {
-                            console.log(data)
                         })
                     })
                 })
@@ -1734,14 +1787,46 @@ $(document).ready(function() {
         }
 
     })
-    // var membership_fetch_data = '{users(sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
-    var membership_fetch_data = '{users(limitItems:15,offset:0,sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
     
     $("#membership-tab").on('click', () => {
         if(userMembershipTabOpen){
             if(USER_PERMISSION.GroupMembership != 0){
+                $('#loader-wrap').removeClass('hide')
                 getTokenRedirect(loginRequest).then(response => {
                     var token_response = response
+
+                    fetch(EMRSconfig.apiUri + '/graphql', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + token_response.accessToken
+                      },
+                      body: JSON.stringify({query:membership_length_fetch_data})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        MEMBERSHIP_LENGTH = data.data.users[0].aggregate_count
+                        var user_membership_temp_data = new Array(MEMBERSHIP_LENGTH)
+                        for(var i=0;i<user_membership_temp_data.length;i++){
+                            user_membership_temp_data[i] = ''
+                        }
+                        var user_membership_temp_dataSource = new kendo.data.DataSource({
+                            data: user_membership_temp_data,
+                            pageSize: 15
+                        });
+
+                        user_membership_temp_dataSource.read();
+                        membership_pager = $("#user-membership-pager").kendoPager({
+                            dataSource: user_membership_temp_dataSource,
+                            change: function(){
+                                let page_num = membership_pager.pageSize()
+                                let page_start_num = (membership_pager.page() - 1) * membership_pager.pageSize()
+                                membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+                                user_membership_page_update(membership_fetch_data)
+                            }
+                        }).data("kendoPager");
+                    })
+
                     fetch(EMRSconfig.apiUri + '/graphql', {
                       method: 'POST',
                       headers: {
@@ -1809,6 +1894,7 @@ $(document).ready(function() {
                             dataValueField: "groupid",
                             dataSource: data.data.groups
                         })
+                        $('#loader-wrap').addClass('hide')
                     })
                 })
             } else {
@@ -2621,16 +2707,27 @@ function ifCondition_change(e){
                 console.log(first_select_id, valuetype)
                 if(valuetype != "freetext") {
                     item.childNodes[replace_num].classList.remove("k-textbox")
-                    $(item.childNodes[replace_num]).kendoDropDownList({
-                        // autoBind: false,
-                        optionLabel: "Select",
-                        dataTextField: "name",
-                        dataValueField: "id"
-                    });
                     var third_select_value = sysPermissionDatas.attributeoperatormappings[i].value
-                    // let dataSource = new kendo.data.DataSource({data: condition_results_value});
-                    let dropdownlist = condition_results.data("kendoDropDownList");
-                    dropdownlist.setDataSource(sysPermissionDatas[third_select_value.toLowerCase() + 's']);
+                    if(third_select_value == "Groups") {
+                        $(item.childNodes[replace_num]).kendoDropDownList({
+                            // autoBind: false,
+                            optionLabel: "Select",
+                            dataTextField: "groupname",
+                            dataValueField: "groupid"
+                        });
+                        let dropdownlist = condition_results.data("kendoDropDownList");
+                        dropdownlist.setDataSource(sysPermissionDatas['groups']);
+                    }
+                    else{
+                        $(item.childNodes[replace_num]).kendoDropDownList({
+                            // autoBind: false,
+                            optionLabel: "Select",
+                            dataTextField: "name",
+                            dataValueField: "id"
+                        });
+                        let dropdownlist = condition_results.data("kendoDropDownList");
+                        dropdownlist.setDataSource(sysPermissionDatas[third_select_value.toLowerCase() + 's']);
+                    }
                 }
                 break;
             }
@@ -2687,17 +2784,19 @@ var documetQueryMap = {
     "AssignedLocation": "locations",
     "DeployedLocation": "locations",
     "LocationType": "",
-    "AssignmentFunction": "assignmentfunction",
+    "AssignmentFunction": "assignmentfunctions",
     "AssignmentRole": "",
     "DocumentRole": "documentroles",
     "Occurrence": "occurrences",
     "Admin1": "",
     "Admin2": "",
+    "InformationConfidentiality": "informationconfidentialitys"
 }
 
 function select_doc_meta_data(e){
     let dataItem = e.dataItem;
     let text = dataItem.name;
+    console.log(text)
     let label_text = dataItem.displayname;
     let value = dataItem.id;
 
