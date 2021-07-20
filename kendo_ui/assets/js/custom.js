@@ -148,6 +148,7 @@ const usernames = [
 // Membership Tab variables
 var membership_length_fetch_data = '{users{aggregate_count,aggregate_userid_max}}'
 var membership_fetch_data = '{users(limitItems:15,offset:0,sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+var membership_fetch_data_end = '){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
 var MEMBERSHIP_LENGTH = 0, membership_pager;
 
 var loader = $('#loader').kendoLoader({
@@ -1595,23 +1596,24 @@ function generateMembershipGrid() {
 }
 
 function user_membership_sort(e) {
-    var filter_field = '', filter_value = '', sort_field = '', sort_dir = '';
+    var sort_field = 'lastname', sort_dir = 'asc';
     var user_membership_grid = $("#user-membership-grid").data("kendoGrid").dataSource
-    var currentFilters = user_membership_grid.filter()
-    if(currentFilters) {
-        var currentFilter = currentFilters.filters[0];
-        filter_field = currentFilter.field
-        filter_value = currentFilter.value
+    var currentSorts = user_membership_grid.sort()
+    if(currentSorts && currentSorts.length > 0) {
+        var currentSort = currentSorts[0]
+        sort_field = currentSort.field
+        sort_dir = currentSort.dir
     }
-    sort_field = e.sort.field
-    sort_dir = e.sort.dir
     var page_num = membership_pager.pageSize()
-    var page_start_num = (membership_pager.page() - 1) * membership_pager.pageSize()
-    user_membership_query_update(filter_field, filter_value, sort_field, sort_dir, page_start_num, page_num)
+    var page_start_num = 0
+    membership_pager.page(1)
+    membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"' + sort_field + '",direction:"' + sort_dir + '"}' + membership_fetch_data_end
+    user_membership_page_update()
 }
 
 function user_membership_filter(e) {
     var filter_field = '', filter_value = '', sort_field = '', sort_dir = '';
+    $('#usermembership-search-input').val('')
     var user_membership_grid = $("#user-membership-grid").data("kendoGrid").dataSource
     var currentSorts = user_membership_grid.sort()
     if(currentSorts && currentSorts.length > 0) {
@@ -1627,7 +1629,8 @@ function user_membership_filter(e) {
         filter_value = e.filter.filters[0].value
     }
     var page_num = membership_pager.pageSize()
-    var page_start_num = (membership_pager.page() - 1) * membership_pager.pageSize()
+    var page_start_num = 0
+    membership_pager.page(1)
     user_membership_query_update(filter_field, filter_value, sort_field, sort_dir, page_start_num, page_num)
 }
 
@@ -1651,9 +1654,11 @@ function user_membership_query_update(filter_field, filter_value, sort_field, so
     var special_filter_items = ['region.name', 'country.name', 'locationtype.name', 'internalexternal.name']
     if(!(filter_value || sort_dir)) {
         membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+        membership_fetch_data_end = '){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
         user_membership_page_update()
     } else if(!filter_value) {
         membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"' + sort_field + '",direction:"' + sort_dir + '"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+        membership_fetch_data_end = '){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
         user_membership_page_update()
     } else if(!sort_dir) {
         if(special_filter_items.includes(filter_field)) {
@@ -1678,6 +1683,7 @@ function user_membership_query_update(filter_field, filter_value, sort_field, so
                             filter_item_ids.push(filter_item_value.id)
                         })
                         membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"lastname",direction:"asc"},filter:"' + filter_item_string + 'id in \\\"' + filter_item_ids.join(',') + '\\\":int32[]"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+                        membership_fetch_data_end = ',filter:"' + filter_item_string + 'id in \\\"' + filter_item_ids.join(',') + '\\\":int32[]"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
                         user_membership_page_update()
                     }
                 })
@@ -1686,12 +1692,11 @@ function user_membership_query_update(filter_field, filter_value, sort_field, so
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
         } else {
-            // membership_fetch_data = '{users(limitItems:15,offset:0,sortBy:{field:"lastname",direction:"asc"},filter:"lastname like \\\"%akk%\\\":string"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
             membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"lastname",direction:"asc"},filter:"' + filter_field + ' like \\\"%' + filter_value + '%\\\":string"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+            membership_fetch_data_end = ',filter:"' + filter_field + ' like \\\"%' + filter_value + '%\\\":string"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
             user_membership_page_update()
         }
     } else {
-        console.log(filter_field, special_filter_items)
         if(special_filter_items.includes(filter_field)) {
             var filter_item_string = filter_field.split('.')[0]
             var filter_items_string = filter_item_string + 's'
@@ -1714,6 +1719,7 @@ function user_membership_query_update(filter_field, filter_value, sort_field, so
                             filter_item_ids.push(filter_item_value.id)
                         })
                         membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"' + sort_field + '",direction:"' + sort_dir + '"},filter:"' + filter_item_string + 'id in \\\"' + filter_item_ids.join(',') + '\\\":int32[]"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+                        membership_fetch_data_end = ',filter:"' + filter_item_string + 'id in \\\"' + filter_item_ids.join(',') + '\\\":int32[]"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
                         user_membership_page_update()
                     }
                 })
@@ -1722,8 +1728,8 @@ function user_membership_query_update(filter_field, filter_value, sort_field, so
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
         } else {
-            // membership_fetch_data = '{users(limitItems:15,offset:0,sortBy:{field:"lastname",direction:"asc"},filter:"lastname like \\\"%akk%\\\":string"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
             membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"' + sort_field + '",direction:"' + sort_dir + '"},filter:"' + filter_field + ' like \\\"%' + filter_value + '%\\\":string"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+            membership_fetch_data_end = ',filter:"' + filter_field + ' like \\\"%' + filter_value + '%\\\":string"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
             user_membership_page_update()
         }
     }
@@ -2119,14 +2125,8 @@ $(document).ready(function() {
                         membership_pager = $("#user-membership-pager").kendoPager({
                             dataSource: user_membership_temp_dataSource,
                             change: function(){
-                                var filter_field = '', filter_value = '', sort_field = '', sort_dir = '';
+                                var sort_field = 'lastname', sort_dir = 'asc';
                                 var user_membership_grid = $("#user-membership-grid").data("kendoGrid").dataSource
-                                var currentFilters = user_membership_grid.filter()
-                                if(currentFilters) {
-                                    var currentFilter = currentFilters.filters[0];
-                                    filter_field = currentFilter.field
-                                    filter_value = currentFilter.value
-                                }
                                 var currentSorts = user_membership_grid.sort()
                                 if(currentSorts && currentSorts.length > 0) {
                                     var currentSort = currentSorts[0]
@@ -2135,7 +2135,8 @@ $(document).ready(function() {
                                 }
                                 let page_num = membership_pager.pageSize()
                                 let page_start_num = (membership_pager.page() - 1) * membership_pager.pageSize()
-                                user_membership_query_update(filter_field, filter_value, sort_field, sort_dir, page_start_num, page_num)
+                                membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"' + sort_field + '",direction:"' + sort_dir + '"}' + membership_fetch_data_end
+                                user_membership_page_update()
                             }
                         }).data("kendoPager");
                     })
@@ -2212,6 +2213,96 @@ $(document).ready(function() {
                 $('#user-membership').hide()
                 $('#membership-blue-bar').text('No Administrator groups are assigned to you');
             }
+        }
+    })
+
+    $("#usermembership-search-btn").on('click', function(){
+        var search_string = $("#usermembership-search-input").val()
+        var filter_field = '', filter_value = '', sort_field = 'lastname', sort_dir = 'asc';
+        var user_membership_grid = $("#user-membership-grid").data("kendoGrid").dataSource
+        var currentSorts = user_membership_grid.sort()
+        if(currentSorts && currentSorts.length > 0) {
+            var currentSort = currentSorts[0]
+            sort_field = currentSort.field
+            sort_dir = currentSort.dir
+        }
+        user_membership_grid.filter({})
+        var page_num = membership_pager.pageSize()
+        var page_start_num = 0
+        membership_pager.page(1);
+        if(search_string) {
+            var [region_filter_string, country_filter_string, locationtype_filter_string, inexternal_filter_string] = ['', '', '', '']
+            var first_filter_query = '{' +
+                    'regions(filter:"name like \'%' + search_string + '%\'"){id}' +
+                    'countrys(filter:"name like \'%' + search_string + '%\'"){id}' +
+                    'locationtypes(filter:"name like \'%' + search_string + '%\'"){id}' +
+                    'internalexternals(filter:"name like \'%' + search_string + '%\'"){id}' +
+                '}'
+            getTokenRedirect(loginRequest).then(response => {
+                fetch(EMRSconfig.apiUri + '/graphql', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + response.accessToken
+                  },
+                  body: JSON.stringify({query:first_filter_query})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.data.regions.length > 0) {
+                        var temp_data = []
+                        data.data.regions.map((region_field) => {
+                            temp_data.push(region_field.id)
+                        })
+                        region_filter_string = 'regionid in \\\"' + temp_data.join(',') + '\\\":int32[] OR '
+                    }
+                    if(data.data.countrys.length > 0) {
+                        var temp_data = []
+                        data.data.countrys.map((country_field) => {
+                            temp_data.push(country_field.id)
+                        })
+                        country_filter_string = 'countryid in \\\"' + temp_data.join(',') + '\\\":int32[] OR '
+                    }
+                    if(data.data.locationtypes.length > 0) {
+                        var temp_data = []
+                        data.data.locationtypes.map((locationtype_field) => {
+                            temp_data.push(locationtype_field.id)
+                        })
+                        locationtype_filter_string = 'locationtypeid in \\\"' + temp_data.join(',') + '\\\":int32[] OR '
+                    }
+                    if(data.data.internalexternals.length > 0) {
+                        var temp_data = []
+                        data.data.internalexternals.map((internalexternal_field) => {
+                            temp_data.push(internalexternal_field.id)
+                        })
+                        inexternal_filter_string = 'internalexternalid in \\\"' + temp_data.join(',') + '\\\":int32[] OR '
+                    }
+                    membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:0,sortBy:{field:"' + sort_field + '",direction:"' + sort_dir + '"},filter:"' +
+                        region_filter_string + country_filter_string + locationtype_filter_string + inexternal_filter_string +
+                        'emailaddress like \\\"%' + search_string + '%\\\":string OR ' +
+                        'firstname like \\\"%' + search_string + '%\\\":string OR ' +
+                        'lastname like \\\"%' + search_string + '%\\\": string OR ' +
+                        'orgpath like \\\"%' + search_string + '%\\\" string OR ' +
+                        'agency like \\\"%' + search_string + '%\\\":string")' +
+                        '{userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+                    membership_fetch_data_end = ',filter:"' +
+                        region_filter_string + country_filter_string + locationtype_filter_string + inexternal_filter_string +
+                        'emailaddress like \\\"%' + search_string + '%\\\":string OR ' +
+                        'firstname like \\\"%' + search_string + '%\\\":string OR ' +
+                        'lastname like \\\"%' + search_string + '%\\\": string OR ' +
+                        'orgpath like \\\"%' + search_string + '%\\\" string OR ' +
+                        'agency like \\\"%' + search_string + '%\\\":string")' +
+                        '{userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+                    user_membership_page_update()
+                })
+            }).catch(error => {
+                console.log(error)
+                kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            });
+        } else {
+            membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"' + sort_field + '",direction:"' + sort_dir + '"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+            membership_fetch_data_end = '){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
+            user_membership_page_update()
         }
     })
     //===================================  TreeList(ReferenceData) block End.  ==============================================================================
