@@ -193,6 +193,10 @@
     flex: 0 0 6%;
     max-width: 6%;
 }
+#ifCondition-wrap>div:first-child>span:last-child{
+    flex: 0 0 23%;
+    max-width: 23%;
+}
 #ifCondition-wrap>div{
     justify-content: flex-start;
 }
