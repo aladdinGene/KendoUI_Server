@@ -1596,6 +1596,7 @@ function generateMembershipGrid() {
 }
 
 function user_membership_sort(e) {
+    $('#loader-wrap').removeClass('hide')
     var sort_field = 'lastname', sort_dir = 'asc';
     var user_membership_grid = $("#user-membership-grid").data("kendoGrid").dataSource
     var currentSorts = user_membership_grid.sort()
@@ -1612,6 +1613,7 @@ function user_membership_sort(e) {
 }
 
 function user_membership_filter(e) {
+    $('#loader-wrap').removeClass('hide')
     var filter_field = '', filter_value = '', sort_field = '', sort_dir = '';
     $('#usermembership-search-input').val('')
     var user_membership_grid = $("#user-membership-grid").data("kendoGrid").dataSource
@@ -1650,7 +1652,6 @@ function clientCategoryEditor(container, options) {
 }
 
 function user_membership_query_update(filter_field, filter_value, sort_field, sort_dir, page_start_num, page_num){
-    console.log(filter_field, filter_value, sort_field, sort_dir, page_start_num, page_num)
     var special_filter_items = ['region.name', 'country.name', 'locationtype.name', 'internalexternal.name']
     if(!(filter_value || sort_dir)) {
         membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"lastname",direction:"asc"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
@@ -1688,6 +1689,7 @@ function user_membership_query_update(filter_field, filter_value, sort_field, so
                     }
                 })
             }).catch(error => {
+                $('#loader-wrap').addClass('hide')
                 console.log(error)
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
@@ -1724,6 +1726,7 @@ function user_membership_query_update(filter_field, filter_value, sort_field, so
                     }
                 })
             }).catch(error => {
+                $('#loader-wrap').addClass('hide')
                 console.log(error)
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
@@ -2125,6 +2128,7 @@ $(document).ready(function() {
                         membership_pager = $("#user-membership-pager").kendoPager({
                             dataSource: user_membership_temp_dataSource,
                             change: function(){
+                                $('#loader-wrap').removeClass('hide')
                                 var sort_field = 'lastname', sort_dir = 'asc';
                                 var user_membership_grid = $("#user-membership-grid").data("kendoGrid").dataSource
                                 var currentSorts = user_membership_grid.sort()
@@ -2217,6 +2221,7 @@ $(document).ready(function() {
     })
 
     $("#usermembership-search-btn").on('click', function(){
+        $('#loader-wrap').removeClass('hide')
         var search_string = $("#usermembership-search-input").val()
         var filter_field = '', filter_value = '', sort_field = 'lastname', sort_dir = 'asc';
         var user_membership_grid = $("#user-membership-grid").data("kendoGrid").dataSource
@@ -2296,6 +2301,7 @@ $(document).ready(function() {
                     user_membership_page_update()
                 })
             }).catch(error => {
+                $('#loader-wrap').addClass('hide')
                 console.log(error)
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
