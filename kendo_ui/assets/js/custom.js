@@ -1561,28 +1561,17 @@ function generateMembershipGrid() {
             { field: 'locationtype.name', title: "Location Type" },
             { field: 'internalexternal.name', title: "Internal or External", editor: clientCategoryEditor },
             { field: "agency", title: "Agency" },
-            { template: '<input type="checkbox">', title: "Group Member" },
+            { template: '<input type="checkbox" class="user-membership-checkbox">', title: "Group Member" },
             {
-                command: ["edit"],
-                title: "Options ",
-                width: "100px"
+                title: 'Actions',
+                template: function (dataItem) {
+                    let buttons = '<div>';
+                        buttons += '<button class="k-button k-button-icontext user-membership-edt"><span class="k-icon k-i-edit"></span>Edit</button>';
+                    buttons += '</div>';
+                    return buttons;
+                },
+                width: 100 
             },
-            // {
-            //     title: 'Actions',
-            //     template: function (dataItem) {
-            //         let buttons = '<div>';
-            //         if((USER_PERMISSION.GroupMembership == 2) || (USER_PERMISSION.GroupMembership == 4)){
-            //             buttons += '<button class="k-button k-button-icontext doc-app-edt"><span class="k-icon k-i-edit"></span>Edit</button>';
-                    
-            //             buttons += '<button class="k-button k-button-icontext doc-app-delete"><span class="k-icon k-i-close"></span>Delete</button>';
-            //         }else{
-            //             buttons += '<button class="k-button k-button-icontext doc-app-edt"><span class="k-icon k-i-edit"></span>View</button>';
-            //         }
-            //         buttons += '</div>';
-            //         return buttons;
-            //     },
-            //     width: 200 
-            // }
         ],
         dataBound: function() {
             this.tbody.find(".statusClass").kendoSwitch({
@@ -2309,6 +2298,199 @@ $(document).ready(function() {
             membership_fetch_data = '{users(limitItems:' + page_num.toString() + ',offset:' + page_start_num.toString() + ',sortBy:{field:"' + sort_field + '",direction:"' + sort_dir + '"}){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
             membership_fetch_data_end = '){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency,groupmemberships{group{groupid}}}}'
             user_membership_page_update()
+        }
+    })
+
+    let group_membership_pop = $("#group-membership-pop").kendoWindow({
+        dataSource: {
+            type: "object"
+        },
+        content: {
+            iframe: true
+        },
+        actions: ["Minimize", "Close"],
+        draggable: true,
+        resizable: false,
+        width: "500px",
+        modal: true,
+        title: "Group Add",
+        visible: false,
+        open: function(e) {
+            
+
+        }
+    });
+
+    $("#group-membership-add-btn").on('click', () => {
+        var viewModel = kendo.observable({"isNew":true});
+        var kendoDialog = kendo.template($("#group-membership-popup-template").html());
+        group_membership_pop.data("kendoWindow").content(kendoDialog(viewModel)).center().open()
+    })
+
+    let user_membership_pop = $("#user-membership-pop").kendoWindow({
+        dataSource: {
+            type: "object"
+        },
+        content: {
+            iframe: true
+        },
+        actions: ["Minimize", "Close"],
+        draggable: true,
+        resizable: false,
+        width: "500px",
+        modal: true,
+        title: "Edit",
+        visible: false,
+        open: function(e) {
+            
+
+        }
+    });
+
+    $("#user-membership").on("click", ".user-membership-edt", function(e){
+        e.preventDefault();
+        var row = $(this).closest("tr");
+        var grid = $("#user-membership-grid").data("kendoGrid");
+        var dataItem = grid.dataItem(row);
+
+        var viewModel = kendo.observable({});
+        var kendoDialog = kendo.template($("#user-membership-popup-template").html());
+        user_membership_pop.data("kendoWindow").content(kendoDialog(viewModel)).center().open()
+
+        setTimeout(() => {
+            var group_membership_data = $('#group-membership').data('kendoDropDownList').dataSource
+            $("#user-membership-group-select").kendoDropDownList({
+                optionLabel: "Select Group",
+                dataTextField: "groupname",
+                dataValueField: "groupid",
+                dataSource: group_membership_data
+            })
+            $("#user-membership-id").val(dataItem.userid)
+        }, 200)
+
+        $("#user-membership-group-edt").on('click', () => {
+            var user_membership_group_select = $("#user-membership-group-select").data('kendoDropDownList')
+            var group_id = user_membership_group_select.value()
+            if(!group_id) {
+                $('.k-error-msg').text('Please select group.')
+                return ;
+            }
+            var member_id = $("#user-membership-id").val()
+            var request_url = `/groups/${group_id}/members`
+            var request_body = {"members":[member_id]}
+            getTokenRedirect(loginRequest).then(response => {
+                fetch(EMRSconfig.apiUri + request_url, {
+                  method: 'PATCH',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + response.accessToken
+                  },
+                  body: JSON.stringify(request_body)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    if(data.error){
+                        $('.k-error-msg').text('')
+                        var errors = data.error.message
+                        for(var i=0;i<errors.length;i++){
+                            $('.k-error-msg').text($('.k-error-msg').text() + errors[i])
+                        }
+                    } else {
+                        user_membership_pop.data("kendoWindow").close()
+                    }
+                }).catch((error) => {
+                    console.log(error)
+                });
+                
+            }).catch(error => {
+                kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            });
+        })
+
+        $("#user-membership-group-del").on('click', () => {
+            user_membership_pop.data("kendoWindow").close()
+        })
+    })
+
+    $("#user-membership").on("click", ".user-membership-checkbox", function(e){
+        var _this = this
+        var user_checked = _this.checked
+        console.log(user_checked)
+        var user_membership_group_select = $("#group-membership").data('kendoDropDownList')
+        var group_id = user_membership_group_select.value()
+        if(!group_id) {
+            e.preventDefault()
+            kendo.alert('Please select group.')
+            return ;
+        }
+        
+        if(user_checked) {
+            var row = $(_this).closest("tr");
+            var grid = $("#user-membership-grid").data("kendoGrid");
+            var dataItem = grid.dataItem(row);
+            var member_id = dataItem.userid
+            var request_url = `/groups/${group_id}/members`
+            var request_body = {"members":[member_id]}
+            getTokenRedirect(loginRequest).then(response => {
+                fetch(EMRSconfig.apiUri + request_url, {
+                  method: 'PATCH',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + response.accessToken
+                  },
+                  body: JSON.stringify(request_body)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    if(data.error){
+                        $('.k-error-msg').text('')
+                        var errors = data.error.message
+                        kendo.alert(errors.join('\n'))
+                        _this.checked = false
+                    } else {
+
+                    }
+                }).catch((error) => {
+                    console.log(error)
+                });
+                
+            }).catch(error => {
+                kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            });
+        } else {
+            var row = $(_this).closest("tr");
+            var grid = $("#user-membership-grid").data("kendoGrid");
+            var dataItem = grid.dataItem(row);
+            var member_id = dataItem.userid
+            var request_url = `/groups/${group_id}/members/${member_id}`
+            getTokenRedirect(loginRequest).then(response => {
+                fetch(EMRSconfig.apiUri + request_url, {
+                  method: 'DELETE',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + response.accessToken
+                  }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    if(data.error){
+                        $('.k-error-msg').text('')
+                        var errors = data.error.message
+                        kendo.alert(errors.join('\n'))
+                        _this.checked = true
+                    } else {
+
+                    }
+                }).catch((error) => {
+                    console.log(error)
+                });
+                
+            }).catch(error => {
+                kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
+            });
         }
     })
     //===================================  TreeList(ReferenceData) block End.  ==============================================================================

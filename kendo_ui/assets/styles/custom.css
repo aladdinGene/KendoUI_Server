@@ -145,7 +145,7 @@
 #system-permission, #document-permission{
     padding: 0 20px;
 }
-.sys-permission-popup-template, .doc-permission-popup-template{
+.sys-permission-popup-template, .doc-permission-popup-template, .group-membership-popup-template{
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;

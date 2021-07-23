@@ -85,7 +85,7 @@
                 <div class="blue-bar"><span id="membership-blue-bar">USER MEMBERSHIP</span><span class="username-wrap"></span></div>
                 <div id="user-membership">
                     <div id="group-membership-wrap">
-                        <input id="group-membership"> <button class="k-button">Add Group</button>
+                        <input id="group-membership"> <button class="k-button" id="group-membership-add-btn">Add Group</button>
                     </div>
                     <div class="d-flex justify-content-between full-flex">
                         <span class="k-textbox k-display-flex">
@@ -552,12 +552,89 @@
                 </div>
             </script>
 
+            <script type="text/x-kendo-template" id="group-membership-popup-template">
+                <div class="group-membership-popup-template">
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_name">Group Name</label>
+                    </div>
+                    <div data-container-for="doc_name" class="sys-pop-edit-field">
+                        <input type="text" class="k-textbox">
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_name">Group Description</label>
+                    </div>
+                    <div data-container-for="doc_name" class="sys-pop-edit-field">
+                        <input type="text" class="k-textbox">
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_name">Group Types</label>
+                    </div>
+                    <div data-container-for="doc_name" class="sys-pop-edit-field">
+                        <input type="text" class="k-textbox">
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_name">owners</label>
+                    </div>
+                    <div data-container-for="doc_name" class="sys-pop-edit-field">
+                        <input type="text" class="k-textbox">
+                    </div>
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_name">members</label>
+                    </div>
+                    <div data-container-for="doc_name" class="sys-pop-edit-field">
+                        <input type="text" class="k-textbox">
+                    </div>
+
+                </div>
+
+                <div class="k-edit-buttons k-state-default">
+                    <div class="k-error-msg"></div>
+                    <button type="button" class="k-button k-button-icontext k-primary">
+                        <span class="k-icon k-i-check"></span>Add
+                    </button>
+                    <button type="button" class="k-button k-button-icontext">
+                        <span class="k-icon k-i-cancel"></span>Cancel
+                    </button>
+                </div>
+            </script>
+
+
+            <script type="text/x-kendo-template" id="user-membership-popup-template">
+                <div class="group-membership-popup-template">
+
+                    <div class="sys-pop-edit-label">
+                        <label for="doc_name">Group Name</label>
+                    </div>
+                    <div data-container-for="doc_name" class="sys-pop-edit-field">
+                        <input type="text" id="user-membership-group-select">
+                    </div>
+
+                </div>
+                <input type="hidden" name="user-membership-hidden" id="user-membership-id">
+                <div class="k-edit-buttons k-state-default">
+                    <div class="k-error-msg"></div>
+                    <button type="button" class="k-button k-button-icontext k-primary" id="user-membership-group-edt">
+                        <span class="k-icon k-i-check"></span>Edit
+                    </button>
+                    <button type="button" class="k-button k-button-icontext" id="user-membership-group-del">
+                        <span class="k-icon k-i-cancel"></span>Cancel
+                    </button>
+                </div>
+            </script>
+
         </div>
         <div class="blue-bar" id="select-tab"><span>Select a tab</span><span class="username-wrap"></span></div>
     </div>
     <div id="sys-pop"></div>
     <div id="doc-pop"></div>
     <div id="reference-pop"></div>
+    <div id="group-membership-pop"></div>
+    <div id="user-membership-pop"></div>
     <div id="loader-wrap"><div id="loader"></div></div>
 <script type="text/javascript" src="assets/js/custom.js"></script>
 </body>
