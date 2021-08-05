@@ -28,6 +28,9 @@
 .mb-10{
     margin-bottom: 10px;
 }
+.mt-10{
+    margin-top: 10px;
+}
 .pull-left{
     float: left;
 }
@@ -89,7 +92,7 @@
 .k-grid-header-wrap table thead tr:first-child>th>a{
     color: #FFF !important;
 }
-#main-wrapper .k-tabstrip-top>.k-tabstrip-items .k-state-active{
+#main-wrapper #tabstrip.k-tabstrip-top>.k-tabstrip-items>.k-state-active{
     border: none;
     margin-bottom: 0;
     border-top: solid 1px #3b8fc8;
@@ -97,16 +100,16 @@
 .k-loading.k-complete{
     border: none;
 }
-.k-tabstrip-top>.k-tabstrip-items .k-item{
+#tabstrip.k-tabstrip-top>.k-tabstrip-items>.k-item{
     margin: 0;
     border: none;
     font-size: 14px;
 }
-.k-tabstrip-top>.k-tabstrip-items .k-item>.k-link{
+#tabstrip.k-tabstrip-top>.k-tabstrip-items>.k-item>.k-link{
     color: #3b8Fc8;
     font-weight: 600;
 }
-#main-wrapper .k-tabstrip-items{
+#tabstrip.k-tabstrip-top>.k-tabstrip-items{
     display: flex;
     justify-content: center;
 }
@@ -292,16 +295,26 @@ span.k-datetimepicker{
 #user-membership>div{
     text-align: center;
 }
-#user-membership #group-membership-wrap .k-button{
-    margin-left: 20px;
+.detailTabstrip>.k-tabstrip-items{
+    text-align: left;
 }
-#group-membership-wrap{
-    padding: 20px 0;
+.detailTabstrip>.k-tabstrip-items>.k-item{
+    text-align: center;
 }
-#group-membership{
+
+.group-membership-user-add-input, .group-membership-user-add-btn{
+    float: right;
+}
+
+.group-membership-user-add-input{
+    margin: .16em;
     width: 200px;
-    text-align: left;
+    margin-right: 10px;
 }
-#user-membership .k-dropdown{
-    text-align: left;
+
+.detailTabstrip .k-tabstrip-items .k-link{
+    padding: .8em .92em;
+}
+.k-loading-mask{
+    z-index: 999999; /* must be larger than the z-index:2 of #container */
 }

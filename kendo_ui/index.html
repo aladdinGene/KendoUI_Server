@@ -82,20 +82,12 @@
                 </div>
             </div>
             <div>
-                <div class="blue-bar"><span id="membership-blue-bar">USER MEMBERSHIP</span><span class="username-wrap"></span></div>
+                <div class="blue-bar"><span id="membership-blue-bar">GROUP MEMBERSHIP</span><span class="username-wrap"></span></div>
                 <div id="user-membership">
-                    <div id="group-membership-wrap">
-                        <input id="group-membership"> <button class="k-button" id="group-membership-add-btn">Add Group</button>
-                    </div>
-                    <div class="d-flex justify-content-between full-flex">
-                        <span class="k-textbox k-display-flex">
-                            <input autocomplete="off" placeholder="Search..." title="Search..." class="k-input" id="usermembership-search-input">
-                            <span class="k-input-icon">
-                                <span class="k-icon k-i-search"></span>
-                            </span>
-                        </span>
+                    <div class="d-flex justify-content-between full-flex mt-10">
+                        <span></span>
                         <div>
-                            <button type="button" class="k-button k-button-icontext" id="usermembership-search-btn"><span class="k-icon k-i-search"></span>Search</button>
+                            <button class="k-button" id="group-membership-add-btn">Add Group</button>
                         </div>
                     </div>
                     <div id="user-membership-grid"></div>
@@ -559,45 +551,45 @@
                         <label for="doc_name">Group Name</label>
                     </div>
                     <div data-container-for="doc_name" class="sys-pop-edit-field">
-                        <input type="text" class="k-textbox">
+                        <input type="text" class="k-textbox" id="group-add-name">
                     </div>
 
                     <div class="sys-pop-edit-label">
                         <label for="doc_name">Group Description</label>
                     </div>
                     <div data-container-for="doc_name" class="sys-pop-edit-field">
-                        <input type="text" class="k-textbox">
+                        <input type="text" class="k-textbox" id="group-add-desc">
                     </div>
 
                     <div class="sys-pop-edit-label">
                         <label for="doc_name">Group Types</label>
                     </div>
                     <div data-container-for="doc_name" class="sys-pop-edit-field">
-                        <input type="text" class="k-textbox">
+                        <input type="text" class="k-textbox" id="group-add-type">
                     </div>
 
                     <div class="sys-pop-edit-label">
-                        <label for="doc_name">owners</label>
+                        <label for="doc_name">Initial owner</label>
                     </div>
                     <div data-container-for="doc_name" class="sys-pop-edit-field">
-                        <input type="text" class="k-textbox">
+                        <input type="text" id="group-add-owner">
                     </div>
 
                     <div class="sys-pop-edit-label">
-                        <label for="doc_name">members</label>
+                        <label for="doc_name">Initial member</label>
                     </div>
                     <div data-container-for="doc_name" class="sys-pop-edit-field">
-                        <input type="text" class="k-textbox">
+                        <input type="text" id="group-add-user">
                     </div>
 
                 </div>
 
                 <div class="k-edit-buttons k-state-default">
                     <div class="k-error-msg"></div>
-                    <button type="button" class="k-button k-button-icontext k-primary">
+                    <button type="button" class="k-button k-button-icontext k-primary group-add-modal-add-btn">
                         <span class="k-icon k-i-check"></span>Add
                     </button>
-                    <button type="button" class="k-button k-button-icontext">
+                    <button type="button" class="k-button k-button-icontext group-add-modal-close-btn">
                         <span class="k-icon k-i-cancel"></span>Cancel
                     </button>
                 </div>
@@ -624,6 +616,29 @@
                     <button type="button" class="k-button k-button-icontext" id="user-membership-group-del">
                         <span class="k-icon k-i-cancel"></span>Cancel
                     </button>
+                </div>
+            </script>
+
+            <script type="text/x-kendo-template" id="template">
+                <div class="detailTabstrip">
+                    <ul>
+                        <li class="k-state-active">
+                            Users
+                        </li>
+                        <li>
+                            Owners
+                        </li>
+                        <button type="button" class="k-button k-button-icontext k-primary group-membership-user-add-btn">
+                            <span class="k-icon k-i-plus"></span>Add user to group
+                        </button>
+                        <input autocomplete="off" class="group-membership-user-add-input">
+                    </ul>
+                    <div>
+                        <div class="group-membership-users"></div>
+                    </div>
+                    <div>
+                        <div class='group-membership-owners'></div>
+                    </div>
                 </div>
             </script>
 
