@@ -1028,7 +1028,6 @@ function add_child(masterType) {
                                 break;
                             }
                         }
-                        console.log(masterDetails, ref_post_val.Type)
                         if(masterDetails.parentid == null) {
                             newElement.parentid = ref_post_val.Type
                         } else {
@@ -1802,9 +1801,7 @@ function group_membership_user_add(ele){
     var row = _this.closest('.k-detail-row').prev()
     var dataItem = $("#user-membership-grid").data('kendoGrid').dataItem(row)
     var group_id = dataItem.groupid
-    
 
-    console.log(group_id)
     var request_url = `/groups/${group_id}/members`
     var request_body = {"members":user_id}
     if(selected_text == "Owners") {
@@ -1823,7 +1820,6 @@ function group_membership_user_add(ele){
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data)
             if(data.error){
                 $('.k-error-msg').text('')
                 var errors = data.error.message
@@ -1840,7 +1836,6 @@ function group_membership_user_add(ele){
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data)
                     if(data.error){
                         $('.k-error-msg').text('')
                         var errors = data.error.message
@@ -2398,7 +2393,6 @@ $(document).ready(function() {
                     .then(response => response.json())
                     .then(data => {
                         $('.k-error-msg').text('')
-                        console.log(data)
                         if(data.error){
                             var messages = data.error.message.validationErrors
                             $('.k-error-msg').text(messages.join(' '))
@@ -2442,7 +2436,6 @@ $(document).ready(function() {
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data)
                 if(data.error){
                     $('.k-error-msg').text('')
                     var errors = data.error.message
@@ -2522,7 +2515,6 @@ $(document).ready(function() {
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data)
                     if(data.error){
                         $('.k-error-msg').text('')
                         var errors = data.error.message
@@ -2858,7 +2850,6 @@ $(document).ready(function() {
             if(key == 'edit') {
                 // sPermission_data[row.index()] = edited_sys_permission
                 add_sys_permission.Id = $("#sys-hidden-id").val()
-                console.log(add_sys_permission, edited_sys_permission)
 
                 getTokenRedirect(loginRequest).then(response => {
                     fetch(EMRSconfig.apiUri + '/permissions/rules', {
@@ -2892,9 +2883,6 @@ $(document).ready(function() {
                     kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
                 });
             } else {
-                
-                console.log(add_sys_permission, edited_sys_permission)
-
                 getTokenRedirect(loginRequest).then(response => {
                     fetch(EMRSconfig.apiUri + '/permissions/rules', {
                       method: 'POST',
@@ -2939,7 +2927,6 @@ $(document).ready(function() {
         dataItem = grid.dataItem(row);
         var page_num = grid.dataSource.pageSize() * (grid.dataSource.page() - 1) + row.index()
         var sys_pop_edit_dataSource = sysPermissionDatas.userpermissions[page_num]
-        console.log(sys_pop_edit_dataSource)
         getTokenRedirect(loginRequest).then(response => {
             fetch(EMRSconfig.apiUri + '/permissions/rules/User/' + sys_pop_edit_dataSource.id, {
               method: 'DELETE',
@@ -2950,7 +2937,6 @@ $(document).ready(function() {
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data)
                 if(data.success) {
                     sysPermissionDatas.userpermissions.splice(page_num, 1)
                     $("#system-permission").data("kendoGrid").dataSource.read();
@@ -3288,7 +3274,6 @@ $(document).ready(function() {
 
         var page_num = grid.dataSource.pageSize() * (grid.dataSource.page() - 1) + row.index()
         var data = dPermission_data[page_num];
-        console.log(data)
         getTokenRedirect(loginRequest).then(response => {
             fetch(EMRSconfig.apiUri + '/permissions/rules/Document/' + data.id, {
               method: 'DELETE',
@@ -3299,7 +3284,6 @@ $(document).ready(function() {
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data)
                 if(data.success) {
                     dPermission_data.splice(page_num, 1)
                     $("#document-permission").data("kendoGrid").dataSource.read();
@@ -3344,7 +3328,6 @@ function ifCondition_change(e){
         for(var i=0;i<sysPermissionDatas.attributeoperatormappings.length;i++) {
             if(sysPermissionDatas.attributeoperatormappings[i].attributeid == first_select_id) {
                 var valuetype = sysPermissionDatas.attributeoperatormappings[i].valuetype
-                console.log(first_select_id, valuetype)
                 if(valuetype != "freetext") {
                     item.childNodes[replace_num].classList.remove("k-textbox")
                     var third_select_value = sysPermissionDatas.attributeoperatormappings[i].value
@@ -3436,7 +3419,6 @@ var documetQueryMap = {
 function select_doc_meta_data(e){
     let dataItem = e.dataItem;
     let text = dataItem.name;
-    console.log(text)
     let label_text = dataItem.displayname;
     let value = dataItem.id;
 
