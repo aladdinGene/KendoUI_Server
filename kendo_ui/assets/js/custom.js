@@ -484,6 +484,8 @@ function referenceTreeInit(){
             treeList.dataSource.data(dataItems);
         }
     })
+
+    referenceDataTabOpen = false
 }
 
 function compare( a, b ) {
@@ -1339,7 +1341,6 @@ function generateSystemGrid(sPermission_data){
             });
         }
     });
-    referenceDataTabOpen = false
 }
 
 
@@ -1501,6 +1502,7 @@ function generateMembershipGrid() {
 
         }
     });
+    userMembershipTabOpen = false
 }
 
 function detailInit(e) {
@@ -1528,7 +1530,10 @@ function detailInit(e) {
         minLength: 2,
         filtering: group_add_user_filtering,
         enforceMinLength: true,
-        maxSelectedItems: 1
+        maxSelectedItems: 1,
+        headerTemplate: '<div class="dropdown-header k-widget k-header searching-ele">' +
+                            '<span>Searching...</span>' +
+                        '</div>',
     })
 
     var groupid = e.data.groupid
@@ -1626,7 +1631,7 @@ function detailInit(e) {
                         title: 'Actions',
                         template: function (dataItem) {
                             let buttons = '<div>';
-                                buttons += '<button class="k-button k-button-icontext group-membership-user-del"><span class="k-icon k-i-edit"></span>Remove</button>';
+                                buttons += '<button class="k-button k-button-icontext group-membership-user-del"><span class="k-icon k-i-close"></span>Remove</button>';
                             buttons += '</div>';
                             return buttons;
                         },
@@ -1730,7 +1735,7 @@ function detailInit(e) {
                         title: 'Actions',
                         template: function (dataItem) {
                             let buttons = '<div>';
-                                buttons += '<button class="k-button k-button-icontext group-membership-owner-del"><span class="k-icon k-i-edit"></span>Remove</button>';
+                                buttons += '<button class="k-button k-button-icontext group-membership-owner-del"><span class="k-icon k-i-close"></span>Remove</button>';
                             buttons += '</div>';
                             return buttons;
                         },
@@ -1798,68 +1803,96 @@ function group_membership_user_add(ele){
     var _this = ele;
     var selected_text = $(_this.closest('.detailTabstrip').data("kendoTabStrip").select()).text().trim()
     var user_id = _this.closest('.detailTabstrip').find('input.group-membership-user-add-input').data('kendoMultiSelect').value()
-    var row = _this.closest('.k-detail-row').prev()
-    var dataItem = $("#user-membership-grid").data('kendoGrid').dataItem(row)
-    var group_id = dataItem.groupid
+    if(user_id.length == 0) {
+        kendo.alert("Select a person first")
+        return ;
+    } else {
+        var row = _this.closest('.k-detail-row').prev()
+        var dataItem = $("#user-membership-grid").data('kendoGrid').dataItem(row)
+        var group_id = dataItem.groupid
 
-    var request_url = `/groups/${group_id}/members`
-    var request_body = {"members":user_id}
-    if(selected_text == "Owners") {
-        request_url = `/groups/${group_id}/owners`
-        request_body = {"owners":user_id}
-    }
+        var request_url = `/groups/${group_id}/members`
+        var request_body = {"members":user_id}
+        if(selected_text == "Owners") {
+            request_url = `/groups/${group_id}/owners`
+            request_body = {"owners":user_id}
+        }
 
-    getTokenRedirect(loginRequest).then(response => {
-        fetch(EMRSconfig.apiUri + request_url, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            "Authorization": "Bearer " + response.accessToken
-          },
-          body: JSON.stringify(request_body)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.error){
-                $('.k-error-msg').text('')
-                var errors = data.error.message
-                kendo.alert(errors.join('\n'))
-            } else {
-                request_body = `{users(userid:"${user_id[0]}"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency}}`
-                fetch(EMRSconfig.apiUri + '/graphql', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + response.accessToken
-                  },
-                  body: JSON.stringify({query:request_body})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if(data.error){
-                        $('.k-error-msg').text('')
-                        var errors = data.error.message
-                        kendo.alert(errors.join('\n'))
-                    } else {
-                        var temp_text = '.group-membership-users'
-                        if(selected_text == "Owners") {
-                            temp_text = '.group-membership-owners'
+        getTokenRedirect(loginRequest).then(response => {
+            fetch(EMRSconfig.apiUri + request_url, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                "Authorization": "Bearer " + response.accessToken
+              },
+              body: JSON.stringify(request_body)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.error){
+                    $('.k-error-msg').text('')
+                    var errors = data.error.message
+                    if(typeof(errors) == "object") kendo.alert(errors.join('\n'))
+                    else kendo.alert(error)
+                } else {
+                    request_body = `{users(userid:"${user_id[0]}"){userid,emailaddress,firstname,lastname,orgpath,region{name},country{name},locationtype{name},internalexternal{name},agency}}`
+                    fetch(EMRSconfig.apiUri + '/graphql', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": "Bearer " + response.accessToken
+                      },
+                      body: JSON.stringify({query:request_body})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.error){
+                            $('.k-error-msg').text('')
+                            var errors = data.error.message
+                            if(typeof(errors) == "object") kendo.alert(errors.join('\n'))
+                            else kendo.alert(error)
+                        } else {
+                            var temp_text = '.group-membership-users'
+                            if(selected_text == "Owners") {
+                                temp_text = '.group-membership-owners'
+                            }
+                            var temp_data = data.data.users[0]
+                            if(temp_data.region == null){
+                                temp_data.region = {
+                                    name: null
+                                }
+                            }
+                            if(temp_data.country == null){
+                                temp_data.country = {
+                                    name: null
+                                }
+                            }
+                            if(temp_data.locationtype == null){
+                                temp_data.locationtype = {
+                                    name: null
+                                }
+                            }
+                            if(temp_data.internalexternal == null){
+                                temp_data.internalexternal = {
+                                    name: null
+                                }
+                            }
+                            var user_grid = _this.closest('.detailTabstrip').find(temp_text).data('kendoGrid')
+                            user_grid.dataSource.insert(0, data.data.users[0])
+                            _this.closest('.detailTabstrip').find('input.group-membership-user-add-input').data('kendoMultiSelect').value([])
                         }
-                        var user_grid = _this.closest('.detailTabstrip').find(temp_text).data('kendoGrid')
-                        user_grid.dataSource.add(data.data.users[0])
-                        _this.closest('.detailTabstrip').find('input.group-membership-user-add-input').data('kendoMultiSelect').value([])
-                    }
-                }).catch((error) => {
-                    console.log(error)
-                });
-            }
-        }).catch((error) => {
-            console.log(error)
+                    }).catch((error) => {
+                        console.log(error)
+                    });
+                }
+            }).catch((error) => {
+                console.log(error)
+            });
+            
+        }).catch(error => {
+            kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
         });
-        
-    }).catch(error => {
-        kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
-    });
+    }
 }
 
 function detailTabstripSelect(e){
@@ -1871,8 +1904,14 @@ function detailTabstripSelect(e){
         add_btn.html('<span class="k-icon k-i-plus"></span>Add user to group');
     }
 }
-
+let typingTimer;
 function group_add_user_filtering(e){
+    $(".searching-ele").show()
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(done_group_add_user_typing, 1000, e);
+}
+
+const done_group_add_user_typing = (e) => {
     if(e.filter){
         var filter_value = e.filter.value
         if(filter_value.length >= 2){
@@ -1888,67 +1927,26 @@ function group_add_user_filtering(e){
                 })
                 .then(response => response.json())
                 .then(data => {
-                    $(e.sender.element).data("kendoMultiSelect").setDataSource(new kendo.data.DataSource({ data: data.data.users }));
+                    var sender_value = $(e.sender.element).prev().find('input').val()
+                    if(sender_value.length < 2) {
+                        $(e.sender.element).data("kendoMultiSelect").setDataSource(new kendo.data.DataSource({ data: [] }));
+                    } else {
+                        $(e.sender.element).data("kendoMultiSelect").setDataSource(new kendo.data.DataSource({ data: data.data.users }));
+                    }
+                    $(".searching-ele").hide()
                 }).catch((error) => {
                     console.log(error)
                 });
-                
             }).catch(error => {
                 $('#loader-wrap').addClass('hide')
                 kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
             });
+        } else {
+            $(e.sender.element).data("kendoMultiSelect").setDataSource(new kendo.data.DataSource({ data: [] }));
         }
-    }
-}
-
-async function group_owner_filtering(e){
-    if(e.filter){
-        var filter_value = e.filter.value
-        if(filter_value.length >= 2){
-            filter_user_server(filter_value, 1)
-        }
-    }
-}
-
-async function group_user_filtering(e){
-    if(e.filter){
-        var filter_value = e.filter.value
-        if(filter_value.length >= 2){
-            filter_user_server(filter_value, 2)
-        }
-    }
-}
-
-function filter_user_server(val, type){
-    var temp_id = '';
-    if(type == 1){
-        temp_id = "#group-add-owner";
     } else {
-        temp_id = "#group-add-user";
+        $(e.sender.element).data("kendoMultiSelect").setDataSource(new kendo.data.DataSource({ data: [] }));
     }
-    kendo.ui.progress($('.group-membership-popup-template'), true);
-    var query = `{users(filter:"firstname LIKE \\\"%${val}%\\\":string OR lastname LIKE \\\"%${val}%\\\":string OR emailaddress LIKE \\\"%${val}%\\\":string"){userid,firstname,lastname,emailaddress}}`
-    getTokenRedirect(loginRequest).then(response => {
-        fetch(EMRSconfig.apiUri + '/graphql', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            "Authorization": "Bearer " + response.accessToken
-          },
-          body: JSON.stringify({query:query})
-        })
-        .then(response => response.json())
-        .then(data => {
-            $(temp_id).data("kendoMultiSelect").setDataSource(new kendo.data.DataSource({ data: data.data.users }));
-            kendo.ui.progress($('.group-membership-popup-template'), false);
-        }).catch((error) => {
-            console.log(error)
-        });
-        
-    }).catch(error => {
-        $('#loader-wrap').addClass('hide')
-        kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
-    });
 }
 
 $(document).ready(function() {
@@ -2352,7 +2350,10 @@ $(document).ready(function() {
                     minLength: 2,
                     enforceMinLength: true,
                     maxSelectedItems: 1,
-                    filtering: group_owner_filtering
+                    filtering: group_add_user_filtering,
+                    headerTemplate: '<div class="dropdown-header k-widget k-header searching-ele">' +
+                                        '<span>Searching...</span>' +
+                                    '</div>',
                 })
                 $("#group-add-user").kendoMultiSelect({
                     autoClose: true,
@@ -2364,7 +2365,10 @@ $(document).ready(function() {
                     minLength: 2,
                     enforceMinLength: true,
                     maxSelectedItems: 1,
-                    filtering: group_user_filtering
+                    filtering: group_add_user_filtering,
+                    headerTemplate: '<div class="dropdown-header k-widget k-header searching-ele">' +
+                                        '<span>Searching...</span>' +
+                                    '</div>',
                 })
             }, 200)
 
@@ -2373,11 +2377,10 @@ $(document).ready(function() {
                 var user_id = $("#group-add-user").data('kendoMultiSelect').value()
                 var group_name = $("#group-add-name").val()
                 var group_desc = $("#group-add-desc").val()
-                var group_type = $("#group-add-type").val()
                 var request_body = {
                     "GroupName": group_name,
                     "GroupDescription": group_desc,
-                    "GroupTypes": group_type,
+                    "GroupTypes": "adhoc",
                     "owners": owner_id,
                     "members": user_id
                 }
@@ -2396,6 +2399,28 @@ $(document).ready(function() {
                         if(data.error){
                             var messages = data.error.message.validationErrors
                             $('.k-error-msg').text(messages.join(' '))
+                        } else {
+                            var temp_query = `{groups(grouptypes:1, groupid:"${data.groupId}"){groupid,groupname,groupdescription,createddate,modifieddate}}`;
+                            fetch(EMRSconfig.apiUri + '/graphql', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                "Authorization": "Bearer " + response.accessToken
+                              },
+                              body: JSON.stringify({query:temp_query})
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                $('.k-error-msg').text('')
+                                if(data.error){
+                                } else {
+                                    $("#user-membership-grid").data("kendoGrid").dataSource.insert(0, data.data.groups[0])
+                                    group_membership_pop.data("kendoWindow").close()
+                                }
+                            })
+                            .catch((error) => {
+                                console.log(error)
+                            });
                         }
                     })
                     .catch((error) => {

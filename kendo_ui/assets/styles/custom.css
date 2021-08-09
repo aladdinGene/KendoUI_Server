@@ -15,7 +15,7 @@
 .justify-content-between{
     justify-content: space-between;
 }
-.k-toolbar button.k-button, #user-membership button.k-button{
+.k-toolbar button.k-button, #user-membership button.k-info{
     color: #FFF;
     background-color: #196aaa;
 }
@@ -308,7 +308,7 @@ span.k-datetimepicker{
 
 .group-membership-user-add-input{
     margin: .16em;
-    width: 200px;
+    width: 300px;
     margin-right: 10px;
 }
 
