@@ -1754,7 +1754,7 @@ function detailInit(e) {
         kendo.alert("You don’t have access to EMRS Reference Data, please contact the Administrator.");
     });
 
-    $('.group-membership-user-add-btn').on('click', async function(){
+    detailRow.find('.group-membership-user-add-btn').on('click', async function(){
         var _this = $(this)
         var selected_text = $(_this.closest('.detailTabstrip').data("kendoTabStrip").select()).text().trim()
         var user_id = _this.closest('.detailTabstrip').find('input.group-membership-user-add-input').data('kendoMultiSelect').value()
