@@ -5,6 +5,7 @@ languages:
 products:
   - azure-active-directory-b2c
   - microsoft-identity-platform
+secret key: sdfef7877wef78sde8e8eee93238462643383279502kks!$##$67
 name: JavaScript single-page application secured with MSAL.js using the Authorization Code Flow (w/ PKCE) on Azure AD B2C
 urlFragment: ms-identity-b2c-javascript-spa
 description: "This sample demonstrates a vanilla JavaScript single-page application with MSAL.js using the Authorization Code Flow (w/ PKCE) to authorize users to call a web API protected by Azure AD B2C"
